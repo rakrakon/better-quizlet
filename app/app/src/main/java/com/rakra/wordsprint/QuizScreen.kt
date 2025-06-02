@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -40,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
 private val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
@@ -193,7 +196,7 @@ fun QuestionScreen(
                                 SolidColor(BUTTON_OUTLINE_COLOR),
                                 RoundedCornerShape(20.dp)
                             )
-                            .height(80.dp)
+                            .height(92.dp)
                     ) {
                         Text(
                             text = option,
@@ -208,21 +211,23 @@ fun QuestionScreen(
                     Button(
                         onClick = { onNext() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent
+                            containerColor = Color(0xFF6E99DB),
+                            contentColor = Color.White,
                         ),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .width(250.dp)
+                            .align(Alignment.CenterHorizontally)
                             .padding(top = 52.dp)
                             .border(
                                 2.dp,
                                 SolidColor(BUTTON_OUTLINE_COLOR),
-                                RoundedCornerShape(20.dp)
+                                RoundedCornerShape(70)
                             ),
-                        contentPadding = PaddingValues(vertical = 12.dp) // ensures text fits
+                        contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                     ) {
                         Text(
                             text = "הבא",
-                            fontSize = TextUnit(24.0F, TextUnitType.Sp),
+                            fontSize = 28.sp,
                             fontFamily = RUBIK_FONT,
                             color = Color.White
                         )

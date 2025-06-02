@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
-private val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
+val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
 
 private val PROGRESS_BAR_COLOR = Color(0xFFA3CEF1)
 

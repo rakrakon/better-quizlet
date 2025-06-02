@@ -31,7 +31,7 @@ fun UnitsSelectScreen() {
                 Text(
                     text = "למידת מילים",
                     fontSize = 42.sp,
-                    fontFamily = ALEF_FONT,
+                    fontFamily = RUBIK_FONT,
                     modifier = Modifier
                         .padding(bottom = 24.dp)
                         .fillMaxWidth(),
@@ -49,7 +49,7 @@ fun UnitsSelectScreen() {
                     Text(
                         text = unit,
                         fontSize = 20.sp,
-                        fontFamily = ALEF_FONT
+                        fontFamily = RUBIK_FONT
                     )
                 }
             }

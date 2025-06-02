@@ -35,7 +35,7 @@ fun WelcomeScreen(onStartClick: () -> Unit) {
             text = "WordSprint",
             style = MaterialTheme.typography.headlineLarge,
             fontSize = 72.sp,
-            fontFamily = ALEF_FONT,
+            fontFamily = RUBIK_FONT,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 64.dp)
@@ -53,7 +53,7 @@ fun WelcomeScreen(onStartClick: () -> Unit) {
             Text(
                 text = "ללמידה",
                 fontSize = 64.sp,
-                fontFamily = ALEF_FONT
+                fontFamily = RUBIK_FONT
             )
         }
     }

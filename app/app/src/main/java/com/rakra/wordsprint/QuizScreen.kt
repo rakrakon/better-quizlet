@@ -1,24 +1,26 @@
 package com.rakra.wordsprint
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,21 +33,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
+private val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
+
+private val PROGRESS_BAR_COLOR = Color(0xFFA3CEF1)
+
 val wordList = listOf(
-    WordMeaning("שלום", "ברכה פשוטה"),
+    WordMeaning("בְּצַוְותָּא", "ביחד"),
     WordMeaning("אבנט", "חגורה רחבה"),
-    WordMeaning("תינוק", "ילד קטן"),
-    WordMeaning("כסא", "ריהוט לישיבה"),
-    WordMeaning("עכבר", "חיית מכרסם"),
-    WordMeaning("מגדל", "בניין גבוה")
+    WordMeaning("בְּרַם", "אולם, אבל"),
+    WordMeaning("גָלְמוּד", "בודד"),
+    WordMeaning("דָּהוּי", "שצבעו נחלש והחוויר"),
+    WordMeaning("גְּלָלִים", "צואת בעלי החיים")
 )
 
 fun generateQuestions(allWords: List<WordMeaning>): List<Question> {
@@ -86,17 +93,38 @@ fun QuizFlow(wordGroup: List<WordMeaning>) {
     val currentQuestion = questions[questionIndex]
     val showResult = selectedAnswer != null
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Progress bar
-        LinearProgressIndicator(
-            progress = {
-                (questionIndex + if (showResult) 1 else 0) / questions.size.toFloat()
-            },
-            modifier = Modifier.fillMaxWidth().padding(top = 56.dp, start = 8.dp, end = 12.dp).height(12.dp)
-            ,
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(BACKGROUND_COLOR)
+            .padding(WindowInsets.statusBars.asPaddingValues())
+    ) {
+        Row {
+            IconButton(
+                onClick = { TODO("Back to main menu") },
+            ) {
+                Icon(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Back",
+                )
+            }
+
+            // Progress bar
+            LinearProgressIndicator(
+                progress = {
+                    (questionIndex + if (showResult) 1 else 0) / questions.size.toFloat()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 13.dp, end = 12.dp)
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                color = PROGRESS_BAR_COLOR,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            )
+        }
+
 
         // Question Screen below
         QuestionScreen(
@@ -115,8 +143,6 @@ fun QuizFlow(wordGroup: List<WordMeaning>) {
 }
 
 
-
-
 @Composable
 fun QuestionScreen(
     word: String,
@@ -127,103 +153,81 @@ fun QuestionScreen(
     showResult: Boolean,
     onNext: () -> Unit
 ) {
-    val isCorrect = selectedAnswer == correctMeaning
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
     ) {
         // Main content
         Column(
-            modifier = Modifier.align(Alignment.Center),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
+                modifier = Modifier.padding(vertical = 32.dp),
                 text = word,
                 style = MaterialTheme.typography.headlineLarge,
                 fontSize = TextUnit(124.0F, TextUnitType.Sp),
-                fontFamily = ALEF_FONT
+                color = Color.White,
+                fontFamily = RUBIK_FONT
             )
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 options.forEach { option ->
                     Button(
                         onClick = { onOptionSelected(option) },
-                        enabled = selectedAnswer == null,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
-                                selectedAnswer == null -> MaterialTheme.colorScheme.primary
-                                option == correctMeaning -> MaterialTheme.colorScheme.secondary
-                                option == selectedAnswer -> MaterialTheme.colorScheme.error
-                                else -> MaterialTheme.colorScheme.primary
-                            }
-                        ),
+                                selectedAnswer == null -> Color.Transparent
+                                showResult && option == correctMeaning -> Color(0xFF2D4227)
+                                selectedAnswer == option -> Color(0xFF4C1E1F)
+                                else -> Color.Transparent
+                            }),
+                        shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 8.dp)
+                            .border(
+                                2.dp,
+                                SolidColor(BUTTON_OUTLINE_COLOR),
+                                RoundedCornerShape(20.dp)
+                            )
+                            .height(80.dp)
                     ) {
                         Text(
                             text = option,
                             fontSize = TextUnit(24.0F, TextUnitType.Sp),
-                            fontFamily = ALEF_FONT
+                            fontFamily = RUBIK_FONT,
+                            color = Color.White
                         )
                     }
                 }
-            }
-        }
 
-        // Overlayed result
-        if (showResult) {
-            val infiniteTransition = rememberInfiniteTransition()
-            val alpha by infiniteTransition.animateFloat(
-                initialValue = 0.3f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(durationMillis = 500, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                )
-            )
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .background(
-                        color = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFF44336),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = if (isCorrect) "!נכון מאד" else ":( לא נכון",
-                    color = Color.White,
-                    fontSize = TextUnit(40f, TextUnitType.Sp),
-                    fontFamily = ALEF_FONT
-                )
-
-                if (!isCorrect) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "התשובה הנכונה היא: $correctMeaning",
-                        color = Color.White,
-                        fontSize = TextUnit(20f, TextUnitType.Sp),
-                        fontFamily = ALEF_FONT
-                    )
+                if (showResult) {
+                    Button(
+                        onClick = { onNext() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 52.dp)
+                            .border(
+                                2.dp,
+                                SolidColor(BUTTON_OUTLINE_COLOR),
+                                RoundedCornerShape(20.dp)
+                            ),
+                        contentPadding = PaddingValues(vertical = 12.dp) // ensures text fits
+                    ) {
+                        Text(
+                            text = "הבא",
+                            fontSize = TextUnit(24.0F, TextUnitType.Sp),
+                            fontFamily = RUBIK_FONT,
+                            color = Color.White
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "המשך",
-                    fontSize = TextUnit(32f, TextUnitType.Sp),
-                    fontFamily = ALEF_FONT,
-                    color = Color.White,
-                    modifier = Modifier
-                        .alpha(alpha)
-                        .clickable { onNext() }
-                )
             }
         }
     }

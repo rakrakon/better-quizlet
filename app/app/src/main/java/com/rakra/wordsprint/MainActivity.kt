@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
-val BACKGROUND_COLOR = Color(0xFF3D2D46)
+val BACKGROUND_COLOR = Color(0xFF1F1B26)
 
 val RUBIK_FONT = FontFamily(
     Font(R.font.rubik_regular, FontWeight.Normal)

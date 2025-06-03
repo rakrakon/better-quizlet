@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -105,6 +106,8 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>) {
         wordsWithMeanings.forEach { this[it.word] = true }
     }}
 
+    val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,11 +171,16 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>) {
                             )
                         },
                         content = {
-                            Box(
+                            val isExpanded = expandedMap[wordMeaning.word] ?: false
+
+                            Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(MaterialTheme.shapes.medium)
                                     .background(Color(0xFF2C2733))
+                                    .clickable {
+                                        expandedMap[wordMeaning.word] = !isExpanded
+                                    }
                                     .padding(vertical = 8.dp, horizontal = 12.dp)
                             ) {
                                 Text(
@@ -183,6 +191,19 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>) {
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.fillMaxWidth()
                                 )
+
+                                AnimatedVisibility(visible = isExpanded) {
+                                    Text(
+                                        text = wordMeaning.meaning,
+                                        fontSize = 18.sp,
+                                        fontFamily = RUBIK_FONT,
+                                        color = Color.LightGray,
+                                        textAlign = TextAlign.End,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp)
+                                    )
+                                }
                             }
                         }
                     )

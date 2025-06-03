@@ -6,11 +6,15 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordDao {
     @Query("SELECT * FROM words")
-    suspend fun getAllWords(): List<WordEntry>
+    fun getAllWords(): Flow<List<WordEntry>>
+
+    @Query("SELECT COUNT(*) FROM words WHERE unit = :unit AND status = :unknownStatus")
+    fun countUnknownWordsInUnit(unit: Int, unknownStatus: String = "UNKNOWN"): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(words: List<WordEntry>)
@@ -23,12 +27,4 @@ interface WordDao {
 
     @Delete
     suspend fun deleteWord(word: WordEntry)
-
-    @Query("SELECT COUNT(*) FROM words WHERE unit = :unit AND status = :unknownStatus")
-    suspend fun countUnknownWordsInUnit(unit: Int, unknownStatus: String = "UNKNOWN"): Int
-
-    suspend fun hasAtLeastNUnknownWords(unit: Int, n: Int = 10): Boolean {
-        val count = countUnknownWordsInUnit(unit)
-        return count >= n
-    }
 }

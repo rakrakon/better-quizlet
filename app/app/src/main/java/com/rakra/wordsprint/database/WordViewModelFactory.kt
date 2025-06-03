@@ -1,8 +1,8 @@
 package com.rakra.wordsprint.database
 
+import WordViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.rakra.wordsprint.viewmodel.WordViewModel
 
 class WordViewModelFactory(private val wordDao: WordDao) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")

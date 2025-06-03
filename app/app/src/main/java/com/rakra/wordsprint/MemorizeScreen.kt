@@ -1,5 +1,6 @@
 package com.rakra.wordsprint
 
+import WordViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -32,12 +33,18 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.rakra.wordsprint.database.AppDatabase
+import com.rakra.wordsprint.database.WordViewModelFactory
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 import kotlinx.coroutines.delay
 
@@ -90,15 +97,22 @@ fun MemorizationPreview() {
 
 
     WordSprintTheme {
-        MemorizationScreen(wordList2)
+        MemorizationScreen(wordList2, 3)
     }
 }
 
-// TODO: Add definition screen for each word
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>) {
+fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
+    val context = LocalContext.current
+    val db = remember { AppDatabase.getDatabase(context) }
+    val wordDao = remember { db.wordDao() }
+
+    val viewModel: WordViewModel = viewModel(factory = WordViewModelFactory(wordDao))
+
+    val hasEnoughUnknown by viewModel.hasAtLeastNUnknownWords(unit).collectAsState()
+
+
     val density = LocalDensity.current
     val visibleWords = remember { wordsWithMeanings.toMutableStateList() }
 

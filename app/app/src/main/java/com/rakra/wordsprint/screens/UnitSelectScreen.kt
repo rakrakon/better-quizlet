@@ -1,7 +1,6 @@
-package com.rakra.wordsprint
+package com.rakra.wordsprint.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,12 +42,12 @@ fun UnitSelectScreen(navController: NavHostController) {
         content = {
             item {
                 Text(
-                    text = "למידת מילים",
+                    text = "בחירת יחידה",
                     fontSize = 42.sp,
                     fontFamily = RUBIK_FONT,
                     color = Color.White,
                     modifier = Modifier
-                        .padding(bottom = 24.dp)
+                        .padding(bottom = 12.dp)
                         .fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
@@ -67,12 +65,7 @@ fun UnitSelectScreen(navController: NavHostController) {
                     shape = RoundedCornerShape(20.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 32.dp, vertical = 8.dp)
-                        .border(
-                            2.dp,
-                            SolidColor(BUTTON_OUTLINE_COLOR),
-                            RoundedCornerShape(20.dp)
-                        ),
+                        .padding(horizontal = 32.dp, vertical = 4.dp),
                     contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                 ) {
                     Text(

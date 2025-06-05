@@ -1,4 +1,4 @@
-package com.rakra.wordsprint
+package com.rakra.wordsprint.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
+import com.rakra.wordsprint.ui.theme.COMPLETE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
@@ -46,7 +47,7 @@ fun UnitScreenPreview() {
     WordSprintTheme {
         PracticeSelectScreen(
             navController = rememberNavController(),
-            unitNumber = 2,
+            unit = 2,
             practiceStates = practiceStates
         )
     }
@@ -56,7 +57,7 @@ fun UnitScreenPreview() {
 @Composable
 fun PracticeSelectScreen(
     navController: NavController,
-    unitNumber: Int = 1,
+    unit: Int,
     practiceStates: List<Boolean>,
 ) {
     Column(
@@ -84,7 +85,7 @@ fun PracticeSelectScreen(
             }
 
         Text(
-            text = "יחידה $unitNumber",
+            text = "יחידה $unit",
             fontSize = 32.sp,
             fontFamily = RUBIK_FONT,
             color = Color.White,
@@ -96,7 +97,7 @@ fun PracticeSelectScreen(
             }
 
         practiceStates.forEachIndexed { index, isCompleted ->
-            val backgroundColor = if (isCompleted) Color(0xFF81C784) else Color(0xFF2C2733)
+            val backgroundColor = if (isCompleted) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
 
             Box(
                 modifier = Modifier
@@ -105,7 +106,7 @@ fun PracticeSelectScreen(
                     .background(backgroundColor)
                     .then(
                         if (!isCompleted) Modifier.clickable {
-                            // TODO("This is FUCKED")
+                            navController.navigate("memorization/${unit}")
                         }
                         else Modifier
                     )

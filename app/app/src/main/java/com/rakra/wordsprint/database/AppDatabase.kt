@@ -1,6 +1,7 @@
 package com.rakra.wordsprint.database
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -41,7 +42,6 @@ abstract class AppDatabase : RoomDatabase() {
 
                 CoroutineScope(Dispatchers.IO).launch {
                     val wordList = mutableListOf<WordEntry>()
-                    val json = Json { ignoreUnknownKeys = true }
 
                     for (i in 1..10) {
                         val path = "fallback_words/unit_$i.json"
@@ -49,9 +49,11 @@ abstract class AppDatabase : RoomDatabase() {
                             context.assets.open(path).use { input ->
                                 val text = input.bufferedReader()
                                     .use(BufferedReader::readText)
-                                val unitWords =
-                                    json.decodeFromString<List<WordEntry>>(text)
-                                wordList += unitWords
+                                val rawMap: Map<String, String> = Json.decodeFromString(text)
+                                val words: List<WordEntry> = rawMap.map { (word, meaning) ->
+                                    WordEntry(word = word, meaning = meaning, unit = 1)
+                                }
+                                wordList += words
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -59,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
                     }
 
                     getDatabase(context).wordDao().insertAll(wordList)
+                    Log.d("DB", "Inserted ${wordList.size}")
                 }
             }
         }

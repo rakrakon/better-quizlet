@@ -51,7 +51,7 @@ abstract class AppDatabase : RoomDatabase() {
                                     .use(BufferedReader::readText)
                                 val rawMap: Map<String, String> = Json.decodeFromString(text)
                                 val words: List<WordEntry> = rawMap.map { (word, meaning) ->
-                                    WordEntry(word = word, meaning = meaning, unit = 1)
+                                    WordEntry(word = word, meaning = meaning, unit = i)
                                 }
                                 wordList += words
                             }

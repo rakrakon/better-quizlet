@@ -44,81 +44,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rakra.wordsprint.database.AppDatabase
+import com.rakra.wordsprint.database.Status
+import com.rakra.wordsprint.database.WordEntry
 import com.rakra.wordsprint.database.WordViewModelFactory
+import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 import kotlinx.coroutines.delay
 
 @Preview(showBackground = true)
 @Composable
 fun MemorizationPreview() {
-    val wordList2 = listOf(
-        WordMeaning("בְּצַוְותָּא", "ביחד"),
-        WordMeaning("אבנט", "חגורה רחבה"),
-        WordMeaning("בְּרַם", "אולם, אבל"),
-        WordMeaning("גָלְמוּד", "בודד"),
-        WordMeaning("דָּהוּי", "שצבעו נחלש והחוויר"),
-        WordMeaning("גְּלָלִים", "צואת בעלי החיים"),
-
-        WordMeaning("בְּעֶטְיוֹ", "בעצתו (הרעה), בשל מזימתו, באשמתו, (עטי = עצה רעה)"),
-        WordMeaning("בָּצִיר", "הענבים עצמם"),
-        WordMeaning("בְּרֹאשׁ חוּצוֹת", "בפומבי, בפרהסיה"),
-        WordMeaning("בָּרִי", "ברור, ודאי, ידוע"),
-        WordMeaning("בְּרֵישׁ גְּלֵי", "לעיני כל"),
-        WordMeaning("בַּר-מִינָן", "מת, מנוח"),
-        WordMeaning("בָּרַר", "בחר את מה שמתאים ביותר, סינן"),
-        WordMeaning("גָּדַשׁ", "מִילא עד אפס מקום"),
-        WordMeaning("גָּדַש אֶת הַסְּאָה", "הגזים, הפריז, עבר את הגבול (סאה - מידת נפח עתיקה)"),
-        WordMeaning("גֵּז", "צמר שנגזז מהצאן"),
-        WordMeaning("גָּז", "נעלם, נמוג, חלף"),
-        WordMeaning("גְּזֵרָה", "פקודה או חוק של איסור כלשהו, פסק דין, תקנה, הוראה"),
-        WordMeaning("גַּיְא", "שקע צר בין הרים"),
-        WordMeaning("גִּיל / גִּילָה", "שמחה, ששון, אושר"),
-        WordMeaning("גַּלְעִין", "גרעין הפרי, ליבה, חרצן"),
-        WordMeaning("גְּמִילָה", "הבשלת הפרי"),
-        WordMeaning("גַּנְזַך", "ארכיב, ארכיון, מקום לאכסון מסמכים (לרוב ממשלתי)"),
-        WordMeaning("גַּפַּיִם", "שם כולל לרגלים והידיים של בני אדם ובעלי חיים"),
-        WordMeaning("גָּרַע", "החסיר"),
-        WordMeaning(
-            "דָּלָה",
-            "שאב, הוציא מהמים (דָּלָה פנינים). בהשאלה: הוציא משהו לאחר חיפוש (לדלות מידע)"
-        ),
-        WordMeaning("דָלַק", "בער"),
-        WordMeaning("דָּרוּך", "מתוח, משוך"),
-        WordMeaning("הֶאֱמִיר", "עלה, התייקר"),
-        WordMeaning("הִבְלִיח", "הבהב באור חלש ובלתי יציב, נצנץ"),
-        WordMeaning("הִגְדִּישׁ אֶת הַסְּאָה", "הגזים, הפריז, עבר את הגבול (סאה - מידת נפח עתיקה)"),
-        WordMeaning("הֵגִיף", "סגר, נעל, הבריח"),
-        WordMeaning("הִדְבִּיר", "ריסס נגד מזיקים"),
-        WordMeaning("הִדִּיר רַגְלָיו", "נמנע מלבקר, הגיע לעתים רחוקות"),
-        WordMeaning("הִדִּיר שֵׁינָה מֵעֵינָיו", "לא נרדם"),
-        WordMeaning("הֵהִין", "העז"),
-        WordMeaning("הוֹכִיחַ", "הטיף לו מוסר")
-    )
-
 
     WordSprintTheme {
-        MemorizationScreen(wordList2, 3)
+        val context = LocalContext.current
+        val db = remember { AppDatabase.getDatabase(context) }
+        val wordDao = remember { db.wordDao() }
+        val viewModel: WordViewModel = viewModel(factory = WordViewModelFactory(wordDao))
+
+        val wordsState by viewModel.wordsState.collectAsState()
+
+        MemorizationScreen(wordsState,1, viewModel)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
-    val context = LocalContext.current
-    val db = remember { AppDatabase.getDatabase(context) }
-    val wordDao = remember { db.wordDao() }
-
-    val viewModel: WordViewModel = viewModel(factory = WordViewModelFactory(wordDao))
-
+fun MemorizationScreen(wordsWithMeanings: List<WordEntry>, unit: Int, viewModel: WordViewModel) {
     val hasEnoughUnknown by viewModel.hasAtLeastNUnknownWords(unit).collectAsState()
-
 
     val density = LocalDensity.current
     val visibleWords = remember { wordsWithMeanings.toMutableStateList() }
 
-    val visibilityMap = remember { mutableStateMapOf<String, Boolean>().apply {
-        wordsWithMeanings.forEach { this[it.word] = true }
-    }}
+    val visibilityMap = remember {
+        mutableStateMapOf<String, Boolean>().apply {
+            wordsWithMeanings.forEach { this[it.word] = true }
+        }
+    }
 
     val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
 
@@ -141,8 +103,8 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
                 .padding(16.dp)
         )
 
-        visibleWords.forEach { wordMeaning ->
-            val dismissState = remember(wordMeaning.word) {
+        visibleWords.forEach { wordEntry ->
+            val dismissState = remember(wordEntry.word) {
                 SwipeToDismissBoxState(
                     initialValue = SwipeToDismissBoxValue.Settled,
                     density = density,
@@ -154,17 +116,37 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
             val target = dismissState.targetValue
             val swiped = target != SwipeToDismissBoxValue.Settled
 
-            if (swiped && visibilityMap[wordMeaning.word] == true) {
-                LaunchedEffect(wordMeaning.word) {
-                    visibilityMap[wordMeaning.word] = false
+            if (swiped && visibilityMap[wordEntry.word] == true) {
+                LaunchedEffect(wordEntry.word) {
+                    visibilityMap[wordEntry.word] = false
                     delay(300)
-                    visibleWords.remove(wordMeaning)
-                    visibilityMap.remove(wordMeaning.word)
+                    visibleWords.remove(wordEntry)
+                    visibilityMap.remove(wordEntry.word)
+
+                    when (target) {
+                        SwipeToDismissBoxValue.StartToEnd -> {
+                            viewModel.updateWord(
+                                wordEntry.apply {
+                                    status = Status.KNOWN
+                                }
+                            )
+                        }
+
+                        SwipeToDismissBoxValue.EndToStart -> {
+                            viewModel.updateWord(
+                                wordEntry.apply {
+                                    status = Status.UNKNOWN
+                                }
+                            )
+                        }
+
+                        else -> {}
+                    }
                 }
             }
 
             AnimatedVisibility(
-                visible = visibilityMap[wordMeaning.word] ?: true,
+                visible = visibilityMap[wordEntry.word] ?: true,
                 exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) +
                         fadeOut(animationSpec = tween(300)),
                 modifier = Modifier.animateContentSize()
@@ -185,7 +167,7 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
                             )
                         },
                         content = {
-                            val isExpanded = expandedMap[wordMeaning.word] ?: false
+                            val isExpanded = expandedMap[wordEntry.word] ?: false
 
                             Column(
                                 modifier = Modifier
@@ -193,12 +175,12 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
                                     .clip(MaterialTheme.shapes.medium)
                                     .background(Color(0xFF2C2733))
                                     .clickable {
-                                        expandedMap[wordMeaning.word] = !isExpanded
+                                        expandedMap[wordEntry.word] = !isExpanded
                                     }
                                     .padding(vertical = 8.dp, horizontal = 12.dp)
                             ) {
                                 Text(
-                                    text = wordMeaning.word,
+                                    text = wordEntry.word,
                                     fontSize = 24.sp,
                                     fontFamily = RUBIK_FONT,
                                     color = Color.White,
@@ -208,7 +190,7 @@ fun MemorizationScreen(wordsWithMeanings: List<WordMeaning>, unit: Int) {
 
                                 AnimatedVisibility(visible = isExpanded) {
                                     Text(
-                                        text = wordMeaning.meaning,
+                                        text = wordEntry.meaning,
                                         fontSize = 18.sp,
                                         fontFamily = RUBIK_FONT,
                                         color = Color.LightGray,

@@ -2,6 +2,7 @@ package com.rakra.wordsprint.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 enum class Status {
     NOT_SELECTED,
@@ -9,11 +10,12 @@ enum class Status {
     UNKNOWN
 }
 
+@Serializable
 @Entity(tableName = "words")
 data class WordEntry(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val word: String,
-    val meaning: String,
-    val unit: Int,
-    val status: Status = Status.NOT_SELECTED
+    var word: String,
+    var meaning: String,
+    var unit: Int,
+    var status: Status = Status.NOT_SELECTED
 )

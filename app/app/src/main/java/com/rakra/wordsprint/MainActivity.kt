@@ -1,52 +1,54 @@
 package com.rakra.wordsprint
 
 import android.os.Bundle
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.core.view.WindowCompat
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
-
-val BACKGROUND_COLOR = Color(0xFF1F1B26)
-
-val RUBIK_FONT = FontFamily(
-    Font(R.font.rubik_regular, FontWeight.Normal)
-)
-
-enum class Screen {
-    Welcome,
-    UnitSelection
-}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        enableEdgeToEdge()
         setContent {
             WordSprintTheme {
-                var currentScreen by remember { mutableStateOf(Screen.Welcome) }
+                AppNavHost()
+            }
+        }
+    }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Box(modifier = Modifier.padding(innerPadding)) {
-                        when (currentScreen) {
-                            Screen.Welcome -> WelcomeScreen {
-                                currentScreen = Screen.UnitSelection
-                            }
+    @Composable
+    fun AppNavHost() {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = "main"
+        ) {
+            composable("main") {
+                MainPage(navController)
+            }
+            composable("unit_selection") {
+                UnitSelectScreen(navController)
+            }
+            composable(
+                route = "unit_screen/{unitNumber}",
+                arguments = listOf(navArgument("unitNumber") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val unitNumber = backStackEntry.arguments?.getInt("unitNumber") ?: 1
 
-                            Screen.UnitSelection -> UnitsSelectScreen()
-                        }
-                    }
-                }
+                // TODO: Make This actually work :[
+                val practiceStates = remember { List(10) { false } }
+
+                PracticeSelectScreen(
+                    navController = navController,
+                    unitNumber = unitNumber,
+                    practiceStates = practiceStates,
+                )
             }
         }
     }

@@ -43,6 +43,10 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
+import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
+import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
 val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
@@ -182,10 +186,10 @@ fun QuestionScreen(
                         onClick = { onOptionSelected(option) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
-                                selectedAnswer == null -> Color.Transparent
+                                selectedAnswer == null -> BUTTON_CONTAINER_COLOR
                                 showResult && option == correctMeaning -> Color(0xFF2D4227)
                                 selectedAnswer == option -> Color(0xFF4C1E1F)
-                                else -> Color.Transparent
+                                else -> BUTTON_CONTAINER_COLOR
                             }),
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
@@ -212,7 +216,7 @@ fun QuestionScreen(
                         onClick = { onNext() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF6E99DB),
-                            contentColor = Color.White,
+                            contentColor = BUTTON_CONTENT_COLOR,
                         ),
                         modifier = Modifier
                             .width(250.dp)

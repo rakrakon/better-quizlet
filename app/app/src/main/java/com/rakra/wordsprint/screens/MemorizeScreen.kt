@@ -60,7 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-const val EXIT_ANIMATION_DURATION_MS = 900
+const val EXIT_ANIMATION_DURATION_MS = 300
 
 @Preview(showBackground = true)
 @Composable

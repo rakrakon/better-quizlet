@@ -60,6 +60,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+const val EXIT_ANIMATION_DURATION_MS = 900
+
 @Preview(showBackground = true)
 @Composable
 fun MemorizationPreview() {
@@ -137,10 +139,7 @@ fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordV
                                 visibilityMap[wordEntry.word] = false
 
                                 scope.launch {
-                                    delay(300)
-                                    visibleWords = visibleWords.toMutableList().apply {
-                                        removeAll { it.word == wordEntry.word }
-                                    }
+                                    delay(EXIT_ANIMATION_DURATION_MS.toLong())
                                     visibilityMap.remove(wordEntry.word)
 
                                     when (target) {
@@ -158,16 +157,16 @@ fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordV
                             }
                             true
                         },
-                        positionalThreshold = { it * 0.5f }
+                        positionalThreshold = { it * 0.7f }
                     )
                 }
 
                 val target = dismissState.targetValue
 
                 AnimatedVisibility(
-                    visible = visibilityMap[wordEntry.word] ?: true,
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 300)) + fadeOut(
-                        animationSpec = tween(300)
+                    visible = visibilityMap[wordEntry.word] ?: false,
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = EXIT_ANIMATION_DURATION_MS)) + fadeOut(
+                        animationSpec = tween(EXIT_ANIMATION_DURATION_MS)
                     ),
                     modifier = Modifier.animateContentSize()
                 ) {

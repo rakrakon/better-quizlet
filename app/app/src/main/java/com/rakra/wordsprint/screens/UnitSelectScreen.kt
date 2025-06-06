@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
-import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 
 @Composable

@@ -14,7 +14,7 @@ interface WordDao {
     fun getAllWords(): Flow<List<WordEntry>>
 
     @Query("SELECT COUNT(*) FROM words WHERE unit = :unit AND status = :unknownStatus")
-    fun countUnknownWordsInUnit(unit: Int, unknownStatus: String = "UNKNOWN"): Flow<Int>
+    fun countUnknownWordsInUnit(unit: Int, unknownStatus: String): Flow<Int>
 
     @Query("SELECT * FROM words WHERE unit = :unit AND status = :status ORDER BY RANDOM() LIMIT 50")
     fun getAllWords(unit: Int, status: Status): Flow<List<WordEntry>>

@@ -1,7 +1,6 @@
 package com.rakra.wordsprint.screens
 
 import WordViewModel
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -11,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -18,9 +18,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -40,14 +45,16 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.rakra.wordsprint.database.AppDatabase
 import com.rakra.wordsprint.database.Status
@@ -59,6 +66,9 @@ import com.rakra.wordsprint.ui.theme.WordSprintTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.collectLatest
 
 const val EXIT_ANIMATION_DURATION_MS = 300
 
@@ -78,14 +88,22 @@ fun MemorizationPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordViewModel) {
-    val hasEnoughUnknown by viewModel.hasAtLeastNUnknownWords(unit).collectAsState()
+fun MemorizationScreen(navController: NavHostController, unit: Int, databaseViewModel: WordViewModel) {
+    val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit).collectAsState()
+    var hasNavigated by remember { mutableStateOf(false) }
 
     LaunchedEffect(hasEnoughUnknown) {
-        if (hasEnoughUnknown) {
-            TODO("Do Some Fucking Magic")
-        }
+        snapshotFlow { hasEnoughUnknown }
+            .collectLatest { value ->
+                if (value && !hasNavigated) {
+                    hasNavigated = true
+                    Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
+                    navController.navigate("quiz/$unit")
+                }
+            }
     }
+
+
 
     val density = LocalDensity.current
 
@@ -93,9 +111,8 @@ fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordV
 
     LaunchedEffect(Unit) {
         visibleWords =
-            viewModel.getWordsByStatus(unit, Status.NOT_SELECTED).first { it.isNotEmpty() }
+            databaseViewModel.getWordsByStatus(unit, Status.NOT_SELECTED).first { it.isNotEmpty() }
     }
-
 
     val visibilityMap = remember(visibleWords) {
         mutableStateMapOf<String, Boolean>().apply {
@@ -117,16 +134,35 @@ fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordV
             .padding(WindowInsets.statusBars.asPaddingValues())
             .padding(horizontal = 12.dp)
     ) {
-        Text(
-            text = "שינון מילים",
-            fontSize = 32.sp,
-            fontFamily = RUBIK_FONT,
-            color = Color.White,
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Back",
+                    tint = Color.Black,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = "שינון מילים",
+                fontSize = 32.sp,
+                fontFamily = RUBIK_FONT,
+                color = Color.White,
+                textAlign = TextAlign.End,
+                modifier = Modifier.padding(end = 12.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         visibleWords.forEach { wordEntry ->
             key(wordEntry.word) {
@@ -144,11 +180,11 @@ fun MemorizationScreen(navController: NavController, unit: Int, viewModel: WordV
 
                                     when (target) {
                                         SwipeToDismissBoxValue.StartToEnd -> {
-                                            viewModel.updateWord(wordEntry.copy(status = Status.KNOWN))
+                                            databaseViewModel.updateWord(wordEntry.copy(status = Status.KNOWN))
                                         }
 
                                         SwipeToDismissBoxValue.EndToStart -> {
-                                            viewModel.updateWord(wordEntry.copy(status = Status.UNKNOWN))
+                                            databaseViewModel.updateWord(wordEntry.copy(status = Status.UNKNOWN))
                                         }
 
                                         else -> {}

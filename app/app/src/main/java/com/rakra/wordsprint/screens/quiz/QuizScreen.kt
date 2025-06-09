@@ -1,5 +1,6 @@
-package com.rakra.wordsprint.screens
+package com.rakra.wordsprint.screens.quiz
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,28 +44,18 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rakra.wordsprint.data_classes.Question
-import com.rakra.wordsprint.WordMeaning
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.rakra.wordsprint.database.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
+import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
+import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
-val BUTTON_OUTLINE_COLOR = Color(0xFF241F27)
-
-private val PROGRESS_BAR_COLOR = Color(0xFFA3CEF1)
-
-val wordList = listOf(
-    WordMeaning("בְּצַוְותָּא", "ביחד"),
-    WordMeaning("אבנט", "חגורה רחבה"),
-    WordMeaning("בְּרַם", "אולם, אבל"),
-    WordMeaning("גָלְמוּד", "בודד"),
-    WordMeaning("דָּהוּי", "שצבעו נחלש והחוויר"),
-    WordMeaning("גְּלָלִים", "צואת בעלי החיים")
-)
-
-fun generateQuestions(allWords: List<WordMeaning>): List<Question> {
+fun generateQuestions(allWords: List<WordEntry>): List<Question> {
     return allWords.shuffled().map { current ->
         val incorrectMeanings = allWords
             .filter { it.word != current.word }
@@ -81,15 +73,17 @@ fun generateQuestions(allWords: List<WordMeaning>): List<Question> {
 @Composable
 fun QuizPreview() {
     WordSprintTheme {
-        QuizFlow(wordList)
+//        QuizFlow(rememberNavController(), listOf())
     }
 }
 
 @Composable
-fun QuizFlow(wordGroup: List<WordMeaning>) {
-    val questions = remember { generateQuestions(wordGroup) }
-    var questionIndex by remember { mutableIntStateOf(0) }
-    var selectedAnswer by remember { mutableStateOf<String?>(null) }
+fun QuizFlow(navController: NavHostController, wordGroup: List<WordEntry>, unit: Int) {
+    val questions = remember(wordGroup) { generateQuestions(wordGroup) }
+    var questionIndex by remember(wordGroup) { mutableIntStateOf(0) }
+    var selectedAnswer by remember(wordGroup) { mutableStateOf<String?>(null) }
+
+    Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $wordGroup")
 
     if (questionIndex >= questions.size) {
         LaunchedEffect(Unit) {
@@ -109,7 +103,9 @@ fun QuizFlow(wordGroup: List<WordMeaning>) {
     ) {
         Row {
             IconButton(
-                onClick = { TODO("Back to main menu") },
+                onClick = {
+                    navController.navigate("unit_screen/$unit ")
+                },
             ) {
                 Icon(
                     modifier = Modifier.size(32.dp),
@@ -134,7 +130,7 @@ fun QuizFlow(wordGroup: List<WordMeaning>) {
         }
 
 
-        // Question Screen below
+        // Question Screen
         QuestionScreen(
             word = currentQuestion.word,
             options = currentQuestion.options,

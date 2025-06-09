@@ -8,6 +8,16 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class WordViewModel(private val wordDao: WordDao) : ViewModel() {
+    private val wordsByStatusCache = mutableMapOf<Pair<Int, Status>, StateFlow<List<WordEntry>>>()
+
+    init {
+        viewModelScope.launch {
+            hasAtLeastNUnknownWords(1).collect { hasEnough ->
+                Log.d("UnknownWordsCheck", "Has enough: $hasEnough")
+            }
+        }
+    }
+
     val wordsState: StateFlow<List<WordEntry>> = wordDao.getAllWords()
         .stateIn(
             scope = viewModelScope,
@@ -26,12 +36,16 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
      * @return A [StateFlow] containing a list of up to 50 [WordEntry] objects.
      */
     fun getWordsByStatus(unit: Int, status: Status): StateFlow<List<WordEntry>> {
-        return wordDao.getAllWords(unit, status)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
-            )
+        val key = unit to status
+        return wordsByStatusCache.getOrPut(key) {
+            wordDao.getAllWords(unit, status)
+                .onEach { Log.d("DEBUG", "Emitted words for $key = $it") }
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = emptyList()
+                )
+        }
     }
 
     fun insertWords(words: List<WordEntry>) {
@@ -59,16 +73,13 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
         }
     }
 
-    private fun countUnknownWords(unit: Int) = wordDao.countUnknownWordsInUnit(unit)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
+    private fun countUnknownWords(unit: Int): Flow<Int> =
+        wordDao.countUnknownWordsInUnit(unit, "UNKNOWN")
 
     fun hasAtLeastNUnknownWords(unit: Int, n: Int = 10): StateFlow<Boolean> {
         return countUnknownWords(unit)
             .map { count -> count >= n }
+            .onStart { emit(false) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),

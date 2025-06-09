@@ -27,6 +27,7 @@ import androidx.navigation.NavHostController
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
+import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 
 @Composable
@@ -41,7 +42,7 @@ fun MainPage(navController: NavHostController) {
     ) {
         Text(
             text = "WordSprint",
-            fontSize = 64.sp,
+            fontSize = 42.sp,
             fontFamily = RUBIK_FONT,
             fontWeight = FontWeight.Bold,
             color = Color.White,

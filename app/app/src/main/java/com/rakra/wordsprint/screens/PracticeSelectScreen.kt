@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
@@ -56,7 +57,7 @@ fun UnitScreenPreview() {
 
 @Composable
 fun PracticeSelectScreen(
-    navController: NavController,
+    navController: NavHostController,
     unit: Int,
     practiceStates: List<Boolean>,
 ) {

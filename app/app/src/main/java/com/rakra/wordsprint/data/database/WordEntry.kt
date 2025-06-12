@@ -1,9 +1,10 @@
-package com.rakra.wordsprint.database
+package com.rakra.wordsprint.data.database
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 
+@Serializable
 enum class Status {
     NOT_SELECTED,
     KNOWN,

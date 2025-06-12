@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.database
+package com.rakra.wordsprint.data.database
 
 import android.content.Context
 import android.util.Log

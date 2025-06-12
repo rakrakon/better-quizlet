@@ -1,14 +1,16 @@
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rakra.wordsprint.database.Status
-import com.rakra.wordsprint.database.WordDao
-import com.rakra.wordsprint.database.WordEntry
+import com.rakra.wordsprint.data.database.Status
+import com.rakra.wordsprint.data.database.WordDao
+import com.rakra.wordsprint.data.database.WordEntry
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class WordViewModel(private val wordDao: WordDao) : ViewModel() {
     private val wordsByStatusCache = mutableMapOf<Pair<Int, Status>, StateFlow<List<WordEntry>>>()
+
+    val randomWordsFlow: Flow<List<WordEntry>> = wordDao.getWordsUnitless(Status.UNKNOWN)
 
     init {
         viewModelScope.launch {
@@ -17,13 +19,6 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
             }
         }
     }
-
-    val wordsState: StateFlow<List<WordEntry>> = wordDao.getAllWords()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
 
     /**
      * Retrieves a [StateFlow] of up to 50 [WordEntry] items matching the given [unit] and [status].
@@ -47,6 +42,7 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
                 )
         }
     }
+
 
     fun insertWords(words: List<WordEntry>) {
         viewModelScope.launch {

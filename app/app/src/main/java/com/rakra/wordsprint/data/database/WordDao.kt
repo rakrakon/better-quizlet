@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.database
+package com.rakra.wordsprint.data.database
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -18,6 +18,9 @@ interface WordDao {
 
     @Query("SELECT * FROM words WHERE unit = :unit AND status = :status ORDER BY RANDOM() LIMIT 50")
     fun getAllWords(unit: Int, status: Status): Flow<List<WordEntry>>
+
+    @Query("SELECT * FROM words WHERE status = :status ORDER BY RANDOM() LIMIT 20")
+    fun getWordsUnitless(status: Status): Flow<List<WordEntry>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(words: List<WordEntry>)

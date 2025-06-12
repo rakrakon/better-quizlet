@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,9 +44,8 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.rakra.wordsprint.AutoResizedText
-import com.rakra.wordsprint.database.WordEntry
+import com.rakra.wordsprint.data.database.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
@@ -55,6 +53,7 @@ import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
+import kotlinx.coroutines.flow.asFlow
 
 fun generateQuestions(allWords: List<WordEntry>): List<Question> {
     return allWords.shuffled().map { current ->
@@ -79,16 +78,24 @@ fun QuizPreview() {
 }
 
 @Composable
-fun QuizFlow(navController: NavHostController, wordGroup: List<WordEntry>, unit: Int) {
+fun QuizFlow(
+    navController: NavHostController,
+    wordGroup: List<WordEntry>,
+    unit: Int,
+    onCompletion: suspend () -> Unit = {}
+) {
     val questions = remember(wordGroup) { generateQuestions(wordGroup) }
     var questionIndex by remember(wordGroup) { mutableIntStateOf(0) }
     var selectedAnswer by remember(wordGroup) { mutableStateOf<String?>(null) }
+    var mistakes by remember(wordGroup) { mutableIntStateOf(0) }
 
     Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $wordGroup")
+    Log.d("DEBUG/QUIZ", "MISTAKES:$mistakes")
 
     if (questionIndex >= questions.size) {
         LaunchedEffect(Unit) {
-            TODO("All questions answered — handle quiz completion here.")
+            onCompletion?.asFlow()
+            navController.navigate("quiz/$unit/true/$mistakes") // True To signal first quiz completed
         }
         return
     }
@@ -138,7 +145,12 @@ fun QuizFlow(navController: NavHostController, wordGroup: List<WordEntry>, unit:
             correctMeaning = currentQuestion.correctMeaning,
             selectedAnswer = selectedAnswer,
             showResult = showResult,
-            onOptionSelected = { selectedAnswer = it },
+            onOptionSelected = {
+                selectedAnswer = it
+                if (it != currentQuestion.correctMeaning) {
+                    mistakes++
+                }
+            },
             onNext = {
                 selectedAnswer = null
                 questionIndex++
@@ -186,7 +198,8 @@ fun QuestionScreen(
                                 showResult && option == correctMeaning -> Color(0xFF2D4227)
                                 selectedAnswer == option -> Color(0xFF4C1E1F)
                                 else -> BUTTON_CONTAINER_COLOR
-                            }),
+                            }
+                        ),
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
                             .fillMaxWidth()

@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.database
+package com.rakra.wordsprint.data.database
 
 import androidx.room.TypeConverter
 

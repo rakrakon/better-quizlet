@@ -107,7 +107,7 @@ fun PracticeSelectScreen(
                     .background(backgroundColor)
                     .then(
                         if (!isCompleted) Modifier.clickable {
-                            navController.navigate("memorization/${unit}")
+                            navController.navigate("filtering/${unit}")
                         }
                         else Modifier
                     )

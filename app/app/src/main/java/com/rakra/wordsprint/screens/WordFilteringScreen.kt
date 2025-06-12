@@ -45,7 +45,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -56,10 +55,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.rakra.wordsprint.database.AppDatabase
-import com.rakra.wordsprint.database.Status
-import com.rakra.wordsprint.database.WordEntry
-import com.rakra.wordsprint.database.WordViewModelFactory
+import com.rakra.wordsprint.data.database.AppDatabase
+import com.rakra.wordsprint.data.database.Status
+import com.rakra.wordsprint.data.database.WordEntry
+import com.rakra.wordsprint.data.database.WordViewModelFactory
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
@@ -68,6 +67,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.compose.runtime.snapshotFlow
+import com.rakra.wordsprint.screens.quiz.SharedQuizViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 const val EXIT_ANIMATION_DURATION_MS = 300
@@ -82,13 +82,17 @@ fun MemorizationPreview() {
         val wordDao = remember { db.wordDao() }
         val viewModel: WordViewModel = viewModel(factory = WordViewModelFactory(wordDao))
 
-        MemorizationScreen(rememberNavController(), 1, viewModel)
+//        WordFilteringScreen(rememberNavController(), 1, viewModel)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemorizationScreen(navController: NavHostController, unit: Int, databaseViewModel: WordViewModel) {
+fun WordFilteringScreen(
+    navController: NavHostController,
+    unit: Int,
+    databaseViewModel: WordViewModel,
+) {
     val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit).collectAsState()
     var hasNavigated by remember { mutableStateOf(false) }
 
@@ -97,13 +101,11 @@ fun MemorizationScreen(navController: NavHostController, unit: Int, databaseView
             .collectLatest { value ->
                 if (value && !hasNavigated) {
                     hasNavigated = true
-                    Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
-                    navController.navigate("quiz/$unit")
+                    Log.d("NAVIGATION", "NAVIGATION TO MEMORIZATION TRIGGERED!")
+                    navController.navigate("memorization/${unit}")
                 }
             }
     }
-
-
 
     val density = LocalDensity.current
 
@@ -111,7 +113,8 @@ fun MemorizationScreen(navController: NavHostController, unit: Int, databaseView
 
     LaunchedEffect(Unit) {
         visibleWords =
-            databaseViewModel.getWordsByStatus(unit, Status.NOT_SELECTED).first { it.isNotEmpty() }
+            databaseViewModel.getWordsByStatus(unit, Status.NOT_SELECTED)
+                .first { it.isNotEmpty() }
     }
 
     val visibilityMap = remember(visibleWords) {
@@ -153,7 +156,7 @@ fun MemorizationScreen(navController: NavHostController, unit: Int, databaseView
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "שינון מילים",
+                text = "פילטור מילים",
                 fontSize = 32.sp,
                 fontFamily = RUBIK_FONT,
                 color = Color.White,

@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.rakra.wordsprint.AutoResizedText
 import com.rakra.wordsprint.database.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
@@ -168,13 +169,11 @@ fun QuestionScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
+            AutoResizedText(
                 modifier = Modifier.padding(vertical = 32.dp),
                 text = word,
                 style = MaterialTheme.typography.headlineLarge,
-                fontSize = TextUnit(124.0F, TextUnitType.Sp),
                 color = Color.White,
-                fontFamily = RUBIK_FONT
             )
 
             Column(modifier = Modifier.fillMaxWidth()) {

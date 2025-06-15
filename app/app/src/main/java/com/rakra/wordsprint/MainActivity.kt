@@ -20,23 +20,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.rakra.wordsprint.data.dataStore.loadWordList
 import com.rakra.wordsprint.data.dataStore.saveWordList
-import com.rakra.wordsprint.data.database.Status
-import com.rakra.wordsprint.data.database.WordEntry
-import com.rakra.wordsprint.data.database.rememberWordViewModel
+import com.rakra.wordsprint.data.progressionDatabase.ProgressStatus
+import com.rakra.wordsprint.data.progressionDatabase.rememberProgressionViewModel
+import com.rakra.wordsprint.data.wordsDatabase.Status
+import com.rakra.wordsprint.data.wordsDatabase.WordEntry
+import com.rakra.wordsprint.data.wordsDatabase.rememberWordViewModel
 import com.rakra.wordsprint.screens.MainPage
 import com.rakra.wordsprint.screens.MemorizationScreen
-import com.rakra.wordsprint.screens.WordFilteringScreen
 import com.rakra.wordsprint.screens.PracticeSelectScreen
 import com.rakra.wordsprint.screens.UnitSelectScreen
+import com.rakra.wordsprint.screens.WordFilteringScreen
 import com.rakra.wordsprint.screens.quiz.QuizFlow
 import com.rakra.wordsprint.screens.quiz.SharedQuizViewModel
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
-
-private const val SECOND_QUIZ_WORD_SIZE = 25
-
-private const val FIRST_QUIZ_MAX_MISTAKES = 1
-
-private const val SECOND_QUIZ_MAX_MISTAKES = 2
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,11 +48,12 @@ class MainActivity : ComponentActivity() {
     fun AppNavHost() {
         val navController = rememberNavController()
         val databaseViewModel = rememberWordViewModel()
+        val progressionViewModel = rememberProgressionViewModel()
         val sharedQuizViewModel: SharedQuizViewModel = viewModel()
 
         NavHost(
             navController = navController,
-            startDestination = "main"
+            startDestination = "main",
         ) {
             composable("main") {
                 MainPage(navController)
@@ -66,37 +63,50 @@ class MainActivity : ComponentActivity() {
             }
             composable(
                 route = "unit_screen/{unitNumber}",
-                arguments = listOf(navArgument("unitNumber") { type = NavType.IntType })
+                arguments = listOf(navArgument("unitNumber") { type = NavType.IntType }),
             ) { backStackEntry ->
                 val unit = backStackEntry.arguments?.getInt("unitNumber") ?: FIRST_QUIZ_MAX_MISTAKES
 
-                // TODO: Make This actually work :[
-                val practiceStates = remember { List(10) { false } }
+                val practiceStates by progressionViewModel.loadPracticesForUnit(unit)
+                    .collectAsState()
+
+                val practiceList = remember(practiceStates) {
+                    practiceStates.map { entry -> entry.completion }
+                }
 
                 PracticeSelectScreen(
                     navController = navController,
                     unit = unit,
-                    practiceStates = practiceStates,
+                    practiceStates = practiceList,
                 )
             }
             composable(
-                route = "filtering/{unit}",
-                arguments = listOf(navArgument("unit") { type = NavType.IntType })
+                route = "filtering/{unit}/{practice}",
+                arguments = listOf(
+                    navArgument("unit") { type = NavType.IntType },
+                    navArgument("practice") { type = NavType.IntType }
+                ),
             ) { backStackEntry ->
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
+                val practice = backStackEntry.arguments?.getInt("practice") ?: 0
+
+
                 WordFilteringScreen(
                     navController = navController,
                     unit = unit,
                     databaseViewModel = databaseViewModel,
+                    practice = practice
                 )
             }
             composable(
-                route = "memorization/{unit}",
+                route = "memorization/{unit}/{practice}",
                 arguments = listOf(
                     navArgument("unit") { type = NavType.IntType },
-                )
+                    navArgument("practice") { type = NavType.IntType },
+                ),
             ) { backStackEntry ->
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
+                val practice = backStackEntry.arguments?.getInt("practice") ?: 0
 
                 val wordsState = databaseViewModel.getWordsByStatus(unit, Status.UNKNOWN)
                 val words = wordsState.collectAsState().value
@@ -106,96 +116,106 @@ class MainActivity : ComponentActivity() {
                     MemorizationScreen(
                         navController = navController,
                         unit = unit,
-                        words = words
+                        practice = practice,
+                        words = words,
                     )
                 } else {
                     CircularProgressIndicator()
                 }
             }
             composable(
-                route = "quiz/{unit}/{isFirst}/{mistakes}",
+                route = "quiz/{unit}/{practice}/{isFirst}/{mistakes}",
                 arguments = listOf(
                     navArgument("unit") { type = NavType.IntType },
+                    navArgument("practice") { type = NavType.IntType },
                     navArgument("isFirst") { type = NavType.BoolType },
-                    navArgument("mistakes") { type = NavType.IntType }
-                )
+                    navArgument("mistakes") { type = NavType.IntType },
+                ),
             ) { backStackEntry ->
                 val context = LocalContext.current
 
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
+                val practice = backStackEntry.arguments?.getInt("practice") ?: 0
                 val isFirst = backStackEntry.arguments?.getBoolean("isFirst") ?: true
                 val mistakes = backStackEntry.arguments?.getInt("mistakes") ?: 0
 
                 val newWords = sharedQuizViewModel.wordList
 
-                if (mistakes > FIRST_QUIZ_MAX_MISTAKES && isFirst) {
+                if (isFirst && mistakes > FIRST_QUIZ_MAX_MISTAKES) {
                     MemorizationScreen(
                         navController = navController,
                         unit = unit,
-                        words = newWords
+                        words = newWords,
+                        practice = practice
                     )
-                } else {
-                    // Collect your randomWordsFlow from databaseViewModel as State
-                    val knownWords by databaseViewModel.randomWordsFlow.collectAsState(initial = emptyList())
+                    return@composable
+                }
 
-                    // Load recentWords from DataStore
-                    var recentWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }
-                    LaunchedEffect(Unit) {
-                        recentWords = loadWordList(context)
+                // Collect your randomWordsFlow from databaseViewModel as State
+                val knownWords by databaseViewModel.randomWordsFlow.collectAsState(initial = emptyList())
+
+                // Load recentWords from DataStore
+                var recentWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }
+                LaunchedEffect(Unit) {
+                    recentWords = loadWordList(context)
+                }
+
+                val combinedWords = remember(newWords, recentWords, knownWords) {
+                    val initialList =
+                        (newWords + recentWords).distinctBy { it.id }.toMutableList()
+
+                    if (initialList.size < SECOND_QUIZ_WORD_SIZE) {
+                        val needed = SECOND_QUIZ_WORD_SIZE - initialList.size
+
+                        val additionalWords = knownWords
+                            .filter { knownWord -> initialList.none { it.id == knownWord.id } }
+                            .take(needed)
+
+                        initialList.addAll(additionalWords)
                     }
 
-                    val combinedWords = remember(newWords, recentWords, knownWords) {
-                        val initialList =
-                            (newWords + recentWords).distinctBy { it.id }.toMutableList()
+                    initialList
+                }
 
-                        if (initialList.size < SECOND_QUIZ_WORD_SIZE) {
-                            val needed = SECOND_QUIZ_WORD_SIZE - initialList.size
-
-                            val additionalWords = knownWords
-                                .filter { knownWord -> initialList.none { it.id == knownWord.id } }
-                                .take(needed)
-
-                            initialList.addAll(additionalWords)
-                        }
-
-                        initialList
-                    }
-
-                    val onCompletion: suspend () -> Unit = if (isFirst || mistakes > SECOND_QUIZ_MAX_MISTAKES) {
+                val onCompletion: suspend () -> Unit =
+                    if (isFirst || mistakes > SECOND_QUIZ_MAX_MISTAKES) {
                         {
-                            navController.navigate("quiz/$unit/false/$mistakes") // False To signal first quiz completed
+                            navController.navigate("quiz/$unit/$practice/false/$mistakes") // False To signal first quiz completed
                         }
                     } else {
                         {
-                            // Assuming Practice completed successfully
                             saveWordList(context, newWords)
                             navController.popBackStack(
                                 route = "unit_screen/$unit",
-                                inclusive = false
+                                inclusive = false,
                             )
 
                             recentWords.forEach { wordEntry ->
                                 databaseViewModel.updateWord(
-                                    wordEntry.copy(status = Status.KNOWN)
+                                    wordEntry.copy(status = Status.KNOWN),
                                 )
                             }
                             newWords.forEach { wordEntry ->
                                 databaseViewModel.updateWord(
-                                    wordEntry.copy(status = Status.RECENT)
+                                    wordEntry.copy(status = Status.RECENT),
                                 )
                             }
 
-                            // TODO: mark practice as complete
+                            // Update Progression
+                            progressionViewModel.getEntry(unit, practice, {
+                                progressionViewModel.update(
+                                    it!!.copy(completion = ProgressStatus.COMPLETED)
+                                )
+                            })
                         }
                     }
 
-                    QuizFlow(
-                        navController = navController,
-                        wordGroup = combinedWords,
-                        unit = unit,
-                        onCompletion = onCompletion,
-                    )
-                }
+                QuizFlow(
+                    navController = navController,
+                    wordGroup = combinedWords,
+                    unit = unit,
+                    onCompletion = onCompletion,
+                )
             }
         }
     }

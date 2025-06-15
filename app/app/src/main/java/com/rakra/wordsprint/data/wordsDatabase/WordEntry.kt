@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.data.database
+package com.rakra.wordsprint.data.wordsDatabase
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -9,7 +9,7 @@ enum class Status {
     NOT_SELECTED,
     RECENT,
     KNOWN,
-    UNKNOWN
+    UNKNOWN,
 }
 
 @Serializable
@@ -19,5 +19,5 @@ data class WordEntry(
     var word: String,
     var meaning: String,
     var unit: Int,
-    var status: Status = Status.NOT_SELECTED
+    var status: Status = Status.NOT_SELECTED,
 )

@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rakra.wordsprint.data.database.WordEntry
+import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
@@ -52,6 +52,7 @@ import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 fun MemorizationScreen(
     navController: NavHostController,
     unit: Int,
+    practice: Int,
     words: List<WordEntry>,
 ) {
     val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
@@ -62,24 +63,24 @@ fun MemorizationScreen(
             .background(BACKGROUND_COLOR)
             .verticalScroll(rememberScrollState())
             .padding(WindowInsets.statusBars.asPaddingValues())
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
                 onClick = {
                     navController.popBackStack()
                     navController.popBackStack()
                 },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Back",
                     tint = Color.Black,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp),
                 )
             }
 
@@ -91,7 +92,7 @@ fun MemorizationScreen(
                 fontFamily = RUBIK_FONT,
                 color = Color.White,
                 textAlign = TextAlign.End,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = 12.dp),
             )
         }
 
@@ -110,7 +111,7 @@ fun MemorizationScreen(
                             .clickable {
                                 expandedMap[wordEntry.word] = !isExpanded
                             }
-                            .padding(vertical = 8.dp, horizontal = 12.dp)
+                            .padding(vertical = 8.dp, horizontal = 12.dp),
                     ) {
                         Text(
                             text = wordEntry.word,
@@ -118,7 +119,7 @@ fun MemorizationScreen(
                             fontFamily = RUBIK_FONT,
                             color = Color.White,
                             textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         AnimatedVisibility(visible = isExpanded) {
@@ -130,7 +131,7 @@ fun MemorizationScreen(
                                 textAlign = TextAlign.End,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 4.dp)
+                                    .padding(top = 4.dp),
                             )
                         }
                     }
@@ -141,10 +142,10 @@ fun MemorizationScreen(
 
         Button(
             onClick = {
-                    Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
+                Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
 
-                    // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.
-                    navController.navigate("quiz/$unit/true/0")
+                // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.
+                navController.navigate("quiz/$unit/$practice/true/0")
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF6E99DB),
@@ -157,15 +158,15 @@ fun MemorizationScreen(
                 .border(
                     2.dp,
                     SolidColor(BUTTON_OUTLINE_COLOR),
-                    RoundedCornerShape(70)
+                    RoundedCornerShape(70),
                 ),
-            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp),
         ) {
             Text(
                 text = "!שיננתי, לתרגול",
                 fontSize = 28.sp,
                 fontFamily = RUBIK_FONT,
-                color = Color.White
+                color = Color.White,
             )
         }
     }

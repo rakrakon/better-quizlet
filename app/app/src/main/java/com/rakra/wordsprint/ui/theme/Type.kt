@@ -8,9 +8,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.rakra.wordsprint.R
 
-
 val RUBIK_FONT = FontFamily(
-    Font(R.font.rubik_regular, FontWeight.Normal)
+    Font(R.font.rubik_regular, FontWeight.Normal),
 )
 
 // Set of Material typography styles to start with
@@ -20,8 +19,8 @@ val Typography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
+        letterSpacing = 0.5.sp,
+    ),
     /* Other default text styles to override
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
@@ -37,5 +36,5 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     )
-    */
+     */
 )

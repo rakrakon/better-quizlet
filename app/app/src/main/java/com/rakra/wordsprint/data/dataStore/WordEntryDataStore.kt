@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.rakra.wordsprint.data.database.WordEntry
+import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
@@ -26,4 +26,3 @@ suspend fun loadWordList(context: Context): List<WordEntry> {
 
     return Json.decodeFromString(json)
 }
-

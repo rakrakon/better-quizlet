@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.AutoResizedText
-import com.rakra.wordsprint.data.database.WordEntry
+import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
@@ -53,7 +53,6 @@ import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
-import kotlinx.coroutines.flow.asFlow
 
 fun generateQuestions(allWords: List<WordEntry>): List<Question> {
     return allWords.shuffled().map { current ->
@@ -106,7 +105,7 @@ fun QuizFlow(
         modifier = Modifier
             .fillMaxWidth()
             .background(BACKGROUND_COLOR)
-            .padding(WindowInsets.statusBars.asPaddingValues())
+            .padding(WindowInsets.statusBars.asPaddingValues()),
     ) {
         Row {
             IconButton(
@@ -132,10 +131,9 @@ fun QuizFlow(
                     .height(20.dp)
                     .clip(RoundedCornerShape(10.dp)),
                 color = PROGRESS_BAR_COLOR,
-                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             )
         }
-
 
         // Question Screen
         QuestionScreen(
@@ -153,11 +151,10 @@ fun QuizFlow(
             onNext = {
                 selectedAnswer = null
                 questionIndex++
-            }
+            },
         )
     }
 }
-
 
 @Composable
 fun QuestionScreen(
@@ -167,18 +164,18 @@ fun QuestionScreen(
     selectedAnswer: String?,
     onOptionSelected: (String) -> Unit,
     showResult: Boolean,
-    onNext: () -> Unit
+    onNext: () -> Unit,
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         // Main content
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             AutoResizedText(
                 modifier = Modifier.padding(vertical = 32.dp),
@@ -197,7 +194,7 @@ fun QuestionScreen(
                                 showResult && option == correctMeaning -> Color(0xFF2D4227)
                                 selectedAnswer == option -> Color(0xFF4C1E1F)
                                 else -> BUTTON_CONTAINER_COLOR
-                            }
+                            },
                         ),
                         shape = RoundedCornerShape(20.dp),
                         modifier = Modifier
@@ -206,15 +203,15 @@ fun QuestionScreen(
                             .border(
                                 2.dp,
                                 SolidColor(BUTTON_OUTLINE_COLOR),
-                                RoundedCornerShape(20.dp)
+                                RoundedCornerShape(20.dp),
                             )
-                            .height(92.dp)
+                            .height(92.dp),
                     ) {
                         Text(
                             text = option,
                             fontSize = TextUnit(24.0F, TextUnitType.Sp),
                             fontFamily = RUBIK_FONT,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
@@ -233,15 +230,15 @@ fun QuestionScreen(
                             .border(
                                 2.dp,
                                 SolidColor(BUTTON_OUTLINE_COLOR),
-                                RoundedCornerShape(70)
+                                RoundedCornerShape(70),
                             ),
-                        contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+                        contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp),
                     ) {
                         Text(
                             text = "הבא",
                             fontSize = 28.sp,
                             fontFamily = RUBIK_FONT,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
@@ -249,6 +246,3 @@ fun QuestionScreen(
         }
     }
 }
-
-
-

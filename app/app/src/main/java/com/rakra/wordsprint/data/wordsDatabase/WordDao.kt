@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.data.database
+package com.rakra.wordsprint.data.wordsDatabase
 
 import androidx.room.Dao
 import androidx.room.Delete

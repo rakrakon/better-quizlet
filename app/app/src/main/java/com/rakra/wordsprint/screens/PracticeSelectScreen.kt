@@ -34,32 +34,20 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.rakra.wordsprint.data.progressionDatabase.ProgressStatus
+import com.rakra.wordsprint.data.progressionDatabase.ProgressionEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.COMPLETE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
-@Preview(showBackground = true)
-@Composable
-fun UnitScreenPreview() {
-    val practiceStates = listOf(true, true, false, false, false, false)
-
-    WordSprintTheme {
-        PracticeSelectScreen(
-            navController = rememberNavController(),
-            unit = 2,
-            practiceStates = practiceStates
-        )
-    }
-}
-
 
 @Composable
 fun PracticeSelectScreen(
     navController: NavHostController,
     unit: Int,
-    practiceStates: List<Boolean>,
+    practiceStates: List<ProgressStatus>,
 ) {
     Column(
         modifier = Modifier
@@ -97,8 +85,8 @@ fun PracticeSelectScreen(
         )
             }
 
-        practiceStates.forEachIndexed { index, isCompleted ->
-            val backgroundColor = if (isCompleted) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
+        practiceStates.forEachIndexed { index, progress ->
+            val backgroundColor = if (progress == ProgressStatus.COMPLETED) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
 
             Box(
                 modifier = Modifier
@@ -106,8 +94,8 @@ fun PracticeSelectScreen(
                     .clip(MaterialTheme.shapes.medium)
                     .background(backgroundColor)
                     .then(
-                        if (!isCompleted) Modifier.clickable {
-                            navController.navigate("filtering/${unit}")
+                        if (progress == ProgressStatus.NOT_STARTED) Modifier.clickable {
+                            navController.navigate("filtering/${unit}/${index + 1}")
                         }
                         else Modifier
                     )

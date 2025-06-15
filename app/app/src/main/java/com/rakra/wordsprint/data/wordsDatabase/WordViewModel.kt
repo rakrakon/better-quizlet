@@ -1,10 +1,16 @@
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rakra.wordsprint.data.database.Status
-import com.rakra.wordsprint.data.database.WordDao
-import com.rakra.wordsprint.data.database.WordEntry
-import kotlinx.coroutines.flow.*
+import com.rakra.wordsprint.data.wordsDatabase.Status
+import com.rakra.wordsprint.data.wordsDatabase.WordDao
+import com.rakra.wordsprint.data.wordsDatabase.WordEntry
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class WordViewModel(private val wordDao: WordDao) : ViewModel() {
@@ -38,11 +44,10 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
                 .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),
-                    initialValue = emptyList()
+                    initialValue = emptyList(),
                 )
         }
     }
-
 
     fun insertWords(words: List<WordEntry>) {
         viewModelScope.launch {
@@ -79,7 +84,7 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = false
+                initialValue = false,
             )
     }
 }

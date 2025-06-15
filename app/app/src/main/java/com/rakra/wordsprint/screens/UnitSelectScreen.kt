@@ -38,7 +38,7 @@ fun UnitSelectScreen(navController: NavHostController) {
             .background(BACKGROUND_COLOR)
             .padding(WindowInsets.statusBars.asPaddingValues())
             .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Text(
             text = "בחירת יחידה",
@@ -48,7 +48,7 @@ fun UnitSelectScreen(navController: NavHostController) {
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 24.dp)
+                .padding(vertical = 24.dp),
         )
 
         unitList.forEach { unit ->
@@ -62,7 +62,7 @@ fun UnitSelectScreen(navController: NavHostController) {
                         navController.navigate("unit_screen/$num")
                     }
                     .padding(vertical = 16.dp)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
             ) {
                 Text(
                     text = unit,
@@ -70,7 +70,7 @@ fun UnitSelectScreen(navController: NavHostController) {
                     fontFamily = RUBIK_FONT,
                     color = Color.White,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))

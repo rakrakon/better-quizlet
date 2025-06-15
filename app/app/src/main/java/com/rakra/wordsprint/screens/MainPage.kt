@@ -38,7 +38,7 @@ fun MainPage(navController: NavHostController) {
             .background(BACKGROUND_COLOR)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "WordSprint",
@@ -47,7 +47,7 @@ fun MainPage(navController: NavHostController) {
             fontWeight = FontWeight.Bold,
             color = Color.White,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
         Spacer(modifier = Modifier.height(36.dp))
@@ -65,15 +65,15 @@ fun MainPage(navController: NavHostController) {
                 .border(
                     2.dp,
                     SolidColor(BUTTON_OUTLINE_COLOR),
-                    RoundedCornerShape(20.dp)
+                    RoundedCornerShape(20.dp),
                 ),
-            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
+            contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp),
         ) {
             Text(
                 text = "ללמידה",
                 fontSize = 28.sp,
                 fontFamily = RUBIK_FONT,
-                color = Color.White
+                color = Color.White,
             )
         }
     }

@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.data.database
+package com.rakra.wordsprint.data.wordsDatabase
 
 import android.content.Context
 import android.util.Log
@@ -6,6 +6,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.rakra.wordsprint.NUMBER_OF_UNITS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,10 +26,10 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "words_database"
+                    "words_database",
                 )
                     .addCallback(
-                        initCallback(context)
+                        initCallback(context),
                     )
                     .build()
                 INSTANCE = instance
@@ -43,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                 CoroutineScope(Dispatchers.IO).launch {
                     val wordList = mutableListOf<WordEntry>()
 
-                    for (i in 1..10) {
+                    for (i in 1..NUMBER_OF_UNITS) {
                         val path = "fallback_words/unit_$i.json"
                         try {
                             context.assets.open(path).use { input ->

@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.data.database
+package com.rakra.wordsprint.data.wordsDatabase
 
 import WordViewModel
 import androidx.compose.runtime.Composable

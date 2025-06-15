@@ -32,6 +32,12 @@ import com.rakra.wordsprint.screens.quiz.QuizFlow
 import com.rakra.wordsprint.screens.quiz.SharedQuizViewModel
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 
+private const val SECOND_QUIZ_WORD_SIZE = 25
+
+private const val FIRST_QUIZ_MAX_MISTAKES = 1
+
+private const val SECOND_QUIZ_MAX_MISTAKES = 2
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +68,7 @@ class MainActivity : ComponentActivity() {
                 route = "unit_screen/{unitNumber}",
                 arguments = listOf(navArgument("unitNumber") { type = NavType.IntType })
             ) { backStackEntry ->
-                val unit = backStackEntry.arguments?.getInt("unitNumber") ?: 1
+                val unit = backStackEntry.arguments?.getInt("unitNumber") ?: FIRST_QUIZ_MAX_MISTAKES
 
                 // TODO: Make This actually work :[
                 val practiceStates = remember { List(10) { false } }
@@ -88,8 +94,7 @@ class MainActivity : ComponentActivity() {
                 route = "memorization/{unit}",
                 arguments = listOf(
                     navArgument("unit") { type = NavType.IntType },
-
-                    )
+                )
             ) { backStackEntry ->
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
 
@@ -123,7 +128,7 @@ class MainActivity : ComponentActivity() {
 
                 val newWords = sharedQuizViewModel.wordList
 
-                if (mistakes > 1 && isFirst) {
+                if (mistakes > FIRST_QUIZ_MAX_MISTAKES && isFirst) {
                     MemorizationScreen(
                         navController = navController,
                         unit = unit,
@@ -140,10 +145,11 @@ class MainActivity : ComponentActivity() {
                     }
 
                     val combinedWords = remember(newWords, recentWords, knownWords) {
-                        val initialList = (newWords + recentWords).distinctBy { it.id }.toMutableList()
+                        val initialList =
+                            (newWords + recentWords).distinctBy { it.id }.toMutableList()
 
-                        if (initialList.size < 25) {
-                            val needed = 25 - initialList.size
+                        if (initialList.size < SECOND_QUIZ_WORD_SIZE) {
+                            val needed = SECOND_QUIZ_WORD_SIZE - initialList.size
 
                             val additionalWords = knownWords
                                 .filter { knownWord -> initialList.none { it.id == knownWord.id } }
@@ -155,10 +161,31 @@ class MainActivity : ComponentActivity() {
                         initialList
                     }
 
-                    var onCompletion = suspend { }
-                    if (!isFirst) {
-                        onCompletion = {
+                    val onCompletion: suspend () -> Unit = if (isFirst || mistakes > SECOND_QUIZ_MAX_MISTAKES) {
+                        {
+                            navController.navigate("quiz/$unit/false/$mistakes") // False To signal first quiz completed
+                        }
+                    } else {
+                        {
+                            // Assuming Practice completed successfully
                             saveWordList(context, newWords)
+                            navController.popBackStack(
+                                route = "unit_screen/$unit",
+                                inclusive = false
+                            )
+
+                            recentWords.forEach { wordEntry ->
+                                databaseViewModel.updateWord(
+                                    wordEntry.copy(status = Status.KNOWN)
+                                )
+                            }
+                            newWords.forEach { wordEntry ->
+                                databaseViewModel.updateWord(
+                                    wordEntry.copy(status = Status.RECENT)
+                                )
+                            }
+
+                            // TODO: mark practice as complete
                         }
                     }
 
@@ -166,7 +193,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         wordGroup = combinedWords,
                         unit = unit,
-                        onCompletion = onCompletion
+                        onCompletion = onCompletion,
                     )
                 }
             }

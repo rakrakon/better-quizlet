@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class Status {
     NOT_SELECTED,
+    RECENT,
     KNOWN,
     UNKNOWN
 }

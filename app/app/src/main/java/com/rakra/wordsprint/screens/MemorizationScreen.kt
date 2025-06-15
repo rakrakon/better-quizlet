@@ -69,7 +69,10 @@ fun MemorizationScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = { navController.popBackStack() },
+                onClick = {
+                    navController.popBackStack()
+                    navController.popBackStack()
+                },
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(

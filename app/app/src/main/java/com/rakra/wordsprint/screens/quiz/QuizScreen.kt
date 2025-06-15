@@ -82,7 +82,7 @@ fun QuizFlow(
     navController: NavHostController,
     wordGroup: List<WordEntry>,
     unit: Int,
-    onCompletion: suspend () -> Unit = {}
+    onCompletion: suspend () -> Unit = {},
 ) {
     val questions = remember(wordGroup) { generateQuestions(wordGroup) }
     var questionIndex by remember(wordGroup) { mutableIntStateOf(0) }
@@ -94,8 +94,7 @@ fun QuizFlow(
 
     if (questionIndex >= questions.size) {
         LaunchedEffect(Unit) {
-            onCompletion?.asFlow()
-            navController.navigate("quiz/$unit/true/$mistakes") // True To signal first quiz completed
+            onCompletion.invoke()
         }
         return
     }
@@ -112,7 +111,7 @@ fun QuizFlow(
         Row {
             IconButton(
                 onClick = {
-                    navController.navigate("unit_screen/$unit ")
+                    navController.popBackStack(route = "unit_screen/$unit", inclusive = false)
                 },
             ) {
                 Icon(

@@ -4,6 +4,8 @@ plugins {
     id("com.google.devtools.ksp") version "2.1.21-2.0.1"
     kotlin("plugin.serialization") version "1.9.0"
     alias(libs.plugins.kotlin.compose)
+
+    id("com.diffplug.spotless") version "6.21.0"
 }
 
 android {
@@ -28,7 +30,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -79,4 +81,18 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(kotlin("test"))
+}
+
+spotless {
+    kotlin {
+        ktfmt()
+        ktlint()
+        diktat()
+        prettier()
+    }
+    kotlinGradle {
+        target("**/*.kt")
+        ktlint()
+    }
 }

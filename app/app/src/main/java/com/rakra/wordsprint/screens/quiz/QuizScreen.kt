@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -27,12 +28,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +57,7 @@ import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
+import kotlinx.coroutines.launch
 
 fun generateQuestions(allWords: List<WordEntry>): List<Question> {
     return allWords.shuffled().map { current ->
@@ -84,14 +88,23 @@ fun QuizFlow(
     Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $wordGroup")
     Log.d("DEBUG/QUIZ", "MISTAKES:$mistakes")
 
-    if (questionIndex >= questions.size) {
-        LaunchedEffect(Unit) {
+    val coroutineScope = rememberCoroutineScope()
+
+    val onFinishClick: () -> Unit = {
+        coroutineScope.launch {
             onCompletion.invoke()
         }
-        return
     }
 
-    val currentQuestion = questions[questionIndex]
+    val isQuizComplete = questionIndex >= questions.size
+
+    if (isQuizComplete) {
+        QuizCompletionDialog(mistakes, questions.size, onFinishClick)
+//        return
+    }
+
+    val currentQuestion =
+        if (isQuizComplete) questions.last() else questions[questionIndex]
     val showResult = selectedAnswer != null
 
     Column(

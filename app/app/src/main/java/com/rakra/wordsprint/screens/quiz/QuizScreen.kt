@@ -3,6 +3,7 @@ package com.rakra.wordsprint.screens.quiz
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -65,14 +66,6 @@ fun generateQuestions(allWords: List<WordEntry>): List<Question> {
         val options = (incorrectMeanings + current.meaning).shuffled()
 
         Question(word = current.word, options = options, correctMeaning = current.meaning)
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun QuizPreview() {
-    WordSprintTheme {
-//        QuizFlow(rememberNavController(), listOf())
     }
 }
 
@@ -187,7 +180,11 @@ fun QuestionScreen(
             Column(modifier = Modifier.fillMaxWidth()) {
                 options.forEach { option ->
                     Button(
-                        onClick = { onOptionSelected(option) },
+                        onClick = {
+                            if (selectedAnswer == null) {
+                                onOptionSelected(option)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
                                 selectedAnswer == null -> BUTTON_CONTAINER_COLOR
@@ -205,7 +202,7 @@ fun QuestionScreen(
                                 SolidColor(BUTTON_OUTLINE_COLOR),
                                 RoundedCornerShape(20.dp),
                             )
-                            .height(92.dp),
+                            .height(92.dp)
                     ) {
                         Text(
                             text = option,

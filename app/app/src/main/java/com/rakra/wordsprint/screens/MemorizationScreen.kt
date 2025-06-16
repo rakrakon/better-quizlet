@@ -71,8 +71,7 @@ fun MemorizationScreen(
         ) {
             IconButton(
                 onClick = {
-                    navController.popBackStack()
-                    navController.popBackStack()
+                    navController.popBackStack(route = "unit_screen/$unit", inclusive = false)
                 },
                 modifier = Modifier.size(48.dp),
             ) {

@@ -84,6 +84,8 @@ fun WordFilteringScreen(
     val unknownWords = remember { mutableStateListOf<WordEntry>() }
 
     LaunchedEffect(unknownWords.size) {
+        if (hasNavigated) return@LaunchedEffect
+
         Log.d("DEBUG", "UNKNOWN WORDS SIZE ${unknownWords.size}")
 
         // Handle overflow of more than 10 words
@@ -93,7 +95,7 @@ fun WordFilteringScreen(
             }
         }
 
-        if (unknownWords.size == FIRST_QUIZ_SIZE && !hasNavigated) {
+        if (unknownWords.size == FIRST_QUIZ_SIZE) {
             hasNavigated = true
             databaseViewModel.insertWords(unknownWords)
             Log.d("NAVIGATION", "NAVIGATION TO MEMORIZATION TRIGGERED!")

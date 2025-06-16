@@ -85,6 +85,7 @@ fun WordFilteringScreen(
 
     LaunchedEffect(unknownWords.size) {
         Log.d("DEBUG", "UNKNOWN WORDS SIZE ${unknownWords.size}")
+
         // Handle overflow of more than 10 words
         if (unknownWords.size > FIRST_QUIZ_SIZE) {
             repeat(unknownWords.size - FIRST_QUIZ_SIZE) {

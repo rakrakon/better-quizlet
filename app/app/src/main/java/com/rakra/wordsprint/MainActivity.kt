@@ -90,6 +90,13 @@ class MainActivity : ComponentActivity() {
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
                 val practice = backStackEntry.arguments?.getInt("practice") ?: 0
 
+                val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit)
+                    .collectAsState()
+
+                if (hasEnoughUnknown) {
+                    navController.navigate("memorization/$unit/$practice")
+                    return@composable
+                }
 
                 WordFilteringScreen(
                     navController = navController,

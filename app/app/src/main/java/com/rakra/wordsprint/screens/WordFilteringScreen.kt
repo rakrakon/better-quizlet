@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.rakra.wordsprint.FIRST_QUIZ_SIZE
 import com.rakra.wordsprint.data.wordsDatabase.AppDatabase
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
@@ -70,19 +72,6 @@ import kotlinx.coroutines.launch
 
 const val EXIT_ANIMATION_DURATION_MS = 300
 
-@Preview(showBackground = true)
-@Composable
-fun MemorizationPreview() {
-    WordSprintTheme {
-        val context = LocalContext.current
-        val db = remember { AppDatabase.getDatabase(context) }
-        val wordDao = remember { db.wordDao() }
-        val viewModel: WordViewModel = viewModel(factory = WordViewModelFactory(wordDao))
-
-//        WordFilteringScreen(rememberNavController(), 1, viewModel)
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WordFilteringScreen(
@@ -91,18 +80,24 @@ fun WordFilteringScreen(
     practice: Int,
     databaseViewModel: WordViewModel,
 ) {
-    val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit).collectAsState()
     var hasNavigated by remember { mutableStateOf(false) }
+    val unknownWords = remember { mutableStateListOf<WordEntry>() }
 
-    LaunchedEffect(hasEnoughUnknown) {
-        snapshotFlow { hasEnoughUnknown }
-            .collectLatest { value ->
-                if (value && !hasNavigated) {
-                    hasNavigated = true
-                    Log.d("NAVIGATION", "NAVIGATION TO MEMORIZATION TRIGGERED!")
-                    navController.navigate("memorization/$unit/$practice")
-                }
+    LaunchedEffect(unknownWords.size) {
+        Log.d("DEBUG", "UNKNOWN WORDS SIZE ${unknownWords.size}")
+        // Handle overflow of more than 10 words
+        if (unknownWords.size > FIRST_QUIZ_SIZE) {
+            repeat(unknownWords.size - FIRST_QUIZ_SIZE) {
+                unknownWords.removeAt(unknownWords.lastIndex)
             }
+        }
+
+        if (unknownWords.size == FIRST_QUIZ_SIZE && !hasNavigated) {
+            hasNavigated = true
+            databaseViewModel.insertWords(unknownWords)
+            Log.d("NAVIGATION", "NAVIGATION TO MEMORIZATION TRIGGERED!")
+            navController.navigate("memorization/$unit/$practice")
+        }
     }
 
     val density = LocalDensity.current
@@ -185,7 +180,8 @@ fun WordFilteringScreen(
                                         }
 
                                         SwipeToDismissBoxValue.EndToStart -> {
-                                            databaseViewModel.updateWord(wordEntry.copy(status = Status.UNKNOWN))
+                                            Log.d("FILTERING", "ADD ${wordEntry.word} TO UNKNOWN")
+                                            unknownWords.add(wordEntry.copy(status = Status.UNKNOWN))
                                         }
 
                                         else -> {}

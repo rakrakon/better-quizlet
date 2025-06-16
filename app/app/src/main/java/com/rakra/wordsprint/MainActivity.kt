@@ -93,7 +93,10 @@ class MainActivity : ComponentActivity() {
                 val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit)
                     .collectAsState()
 
-                if (hasEnoughUnknown) {
+                var navigated by remember { mutableStateOf(false) }
+
+                if (!navigated && hasEnoughUnknown) {
+                    navigated = true
                     navController.navigate("memorization/$unit/$practice")
                     return@composable
                 }
@@ -126,8 +129,6 @@ class MainActivity : ComponentActivity() {
                         practice = practice,
                         words = words,
                     )
-                } else {
-                    CircularProgressIndicator()
                 }
             }
             composable(
@@ -219,7 +220,7 @@ class MainActivity : ComponentActivity() {
 
                 QuizFlow(
                     navController = navController,
-                    wordGroup = combinedWords,
+                    wordGroup = if (isFirst) newWords else combinedWords,
                     unit = unit,
                     onCompletion = onCompletion,
                 )

@@ -3,7 +3,6 @@ package com.rakra.wordsprint.screens.quiz
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,9 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -42,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -56,7 +51,6 @@ import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
-import com.rakra.wordsprint.ui.theme.WordSprintTheme
 import kotlinx.coroutines.launch
 
 fun generateQuestions(allWords: List<WordEntry>): List<Question> {
@@ -100,7 +94,6 @@ fun QuizFlow(
 
     if (isQuizComplete) {
         QuizCompletionDialog(mistakes, questions.size, onFinishClick)
-//        return
     }
 
     val currentQuestion =
@@ -215,7 +208,7 @@ fun QuestionScreen(
                                 SolidColor(BUTTON_OUTLINE_COLOR),
                                 RoundedCornerShape(20.dp),
                             )
-                            .height(92.dp)
+                            .height(92.dp),
                     ) {
                         Text(
                             text = option,

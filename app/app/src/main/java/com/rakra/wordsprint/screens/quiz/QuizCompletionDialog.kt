@@ -20,23 +20,25 @@ import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 fun QuizCompletionDialog(
     mistakes: Int,
     totalQuestions: Int,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = { /* Disable dismiss on outside click */ },
-        title = { Text(
-            text = "!כל הכבוד",
-            textAlign = TextAlign.End,
-            modifier = Modifier.fillMaxWidth(),
-            fontFamily = RUBIK_FONT
-        ) },
+        title = {
+            Text(
+                text = "!כל הכבוד",
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth(),
+                fontFamily = RUBIK_FONT,
+            )
+        },
         text = {
             Text(
                 text = ".סיימת את השאלון\n" +
-                        ".טעית ב - $mistakes מתוך $totalQuestions שאלות",
+                    ".טעית ב - $mistakes מתוך $totalQuestions שאלות",
                 textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth(),
-                fontFamily = RUBIK_FONT
+                fontFamily = RUBIK_FONT,
             )
         },
         confirmButton = {
@@ -44,18 +46,18 @@ fun QuizCompletionDialog(
                 onClick = onContinue,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BUTTON_CONTAINER_COLOR,
-                    contentColor = BUTTON_CONTENT_COLOR
+                    contentColor = BUTTON_CONTENT_COLOR,
                 ),
                 shape = RoundedCornerShape(70),
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(8.dp),
             ) {
                 Text(
                     text = "הבא",
                     fontSize = 20.sp,
-                    fontFamily = RUBIK_FONT
+                    fontFamily = RUBIK_FONT,
                 )
             }
-        }
+        },
     )
 }

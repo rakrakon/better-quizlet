@@ -3,7 +3,6 @@ package com.rakra.wordsprint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -84,7 +83,7 @@ class MainActivity : ComponentActivity() {
                 route = "filtering/{unit}/{practice}",
                 arguments = listOf(
                     navArgument("unit") { type = NavType.IntType },
-                    navArgument("practice") { type = NavType.IntType }
+                    navArgument("practice") { type = NavType.IntType },
                 ),
             ) { backStackEntry ->
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
@@ -105,7 +104,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     unit = unit,
                     databaseViewModel = databaseViewModel,
-                    practice = practice
+                    practice = practice,
                 )
             }
             composable(
@@ -154,7 +153,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         unit = unit,
                         words = newWords,
-                        practice = practice
+                        practice = practice,
                     )
                     return@composable
                 }
@@ -212,7 +211,7 @@ class MainActivity : ComponentActivity() {
                             // Update Progression
                             progressionViewModel.getEntry(unit, practice, {
                                 progressionViewModel.update(
-                                    it!!.copy(completion = ProgressStatus.COMPLETED)
+                                    it!!.copy(completion = ProgressStatus.COMPLETED),
                                 )
                             })
                         }

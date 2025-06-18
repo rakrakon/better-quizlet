@@ -28,20 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.rakra.wordsprint.data.progressionDatabase.ProgressStatus
-import com.rakra.wordsprint.data.progressionDatabase.ProgressionEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.COMPLETE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
-import com.rakra.wordsprint.ui.theme.WordSprintTheme
-
 
 @Composable
 fun PracticeSelectScreen(
@@ -55,35 +49,35 @@ fun PracticeSelectScreen(
             .background(BACKGROUND_COLOR)
             .padding(WindowInsets.statusBars.asPaddingValues())
             .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
                 onClick = { navController.popBackStack() },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             ) {
                 Icon(
                     modifier = Modifier.size(48.dp),
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = Color.Black,
                 )
             }
 
-        Text(
-            text = "יחידה $unit",
-            fontSize = 32.sp,
-            fontFamily = RUBIK_FONT,
-            color = Color.White,
-            textAlign = TextAlign.End,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp)
-        )
-            }
+            Text(
+                text = "יחידה $unit",
+                fontSize = 32.sp,
+                fontFamily = RUBIK_FONT,
+                color = Color.White,
+                textAlign = TextAlign.End,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+            )
+        }
 
         practiceStates.forEachIndexed { index, progress ->
             val backgroundColor = if (progress == ProgressStatus.COMPLETED) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
@@ -94,13 +88,16 @@ fun PracticeSelectScreen(
                     .clip(MaterialTheme.shapes.medium)
                     .background(backgroundColor)
                     .then(
-                        if (progress == ProgressStatus.NOT_STARTED) Modifier.clickable {
-                            navController.navigate("filtering/${unit}/${index + 1}")
-                        }
-                        else Modifier
+                        if (progress == ProgressStatus.NOT_STARTED) {
+                            Modifier.clickable {
+                                navController.navigate("filtering/$unit/${index + 1}")
+                            }
+                        } else {
+                            Modifier
+                        },
                     )
                     .padding(vertical = 16.dp)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
             ) {
                 Text(
                     text = "תרגול מספר ${index + 1}",
@@ -108,7 +105,7 @@ fun PracticeSelectScreen(
                     fontFamily = RUBIK_FONT,
                     color = Color.White,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))

@@ -2,6 +2,7 @@ package com.rakra.wordsprint.screens
 
 import WordViewModel
 import android.util.Log
+import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -9,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -53,6 +56,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.FIRST_QUIZ_SIZE
+import com.rakra.wordsprint.animations.ClickHint
+import com.rakra.wordsprint.animations.SwipeLeftHint
+import com.rakra.wordsprint.animations.SwipeRightHint
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
@@ -113,144 +119,183 @@ fun WordFilteringScreen(
     }
 
     val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
+    var showHints by remember { mutableStateOf(true) }
 
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BACKGROUND_COLOR)
-            .verticalScroll(rememberScrollState())
-            .padding(WindowInsets.statusBars.asPaddingValues())
-            .padding(horizontal = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BACKGROUND_COLOR)
+                .verticalScroll(rememberScrollState())
+                .padding(WindowInsets.statusBars.asPaddingValues())
+                .padding(horizontal = 12.dp),
         ) {
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier.size(48.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = "Back",
-                    tint = Color.Black,
+                IconButton(
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.size(48.dp),
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = "פילטור מילים",
-                fontSize = 32.sp,
-                fontFamily = RUBIK_FONT,
-                color = Color.White,
-                textAlign = TextAlign.End,
-                modifier = Modifier.padding(end = 12.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        visibleWords.forEach { wordEntry ->
-            key(wordEntry.word) {
-                val dismissState = remember(wordEntry.word) {
-                    SwipeToDismissBoxState(
-                        initialValue = SwipeToDismissBoxValue.Settled,
-                        density = density,
-                        confirmValueChange = { target ->
-                            if (visibilityMap[wordEntry.word] == true) {
-                                visibilityMap[wordEntry.word] = false
-
-                                scope.launch {
-                                    delay(EXIT_ANIMATION_DURATION_MS.toLong())
-                                    visibilityMap.remove(wordEntry.word)
-
-                                    when (target) {
-                                        SwipeToDismissBoxValue.StartToEnd -> {
-                                            databaseViewModel.updateWord(wordEntry.copy(status = Status.KNOWN))
-                                        }
-
-                                        SwipeToDismissBoxValue.EndToStart -> {
-                                            Log.d("FILTERING", "ADD ${wordEntry.word} TO UNKNOWN")
-                                            unknownWords.add(wordEntry.copy(status = Status.UNKNOWN))
-                                        }
-
-                                        else -> {}
-                                    }
-                                }
-                            }
-                            true
-                        },
-                        positionalThreshold = { it * 0.7f },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Back",
+                        tint = Color.Black,
+                        modifier = Modifier.size(48.dp),
                     )
                 }
 
-                val target = dismissState.targetValue
+                Spacer(modifier = Modifier.weight(1f))
 
-                AnimatedVisibility(
-                    visible = visibilityMap[wordEntry.word] ?: false,
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = EXIT_ANIMATION_DURATION_MS)) + fadeOut(
-                        animationSpec = tween(EXIT_ANIMATION_DURATION_MS),
-                    ),
-                    modifier = Modifier.animateContentSize(),
-                ) {
-                    Column {
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = {
-                                val color = when (target) {
-                                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF81C784) // Green
-                                    SwipeToDismissBoxValue.EndToStart -> Color(0xFFE57373) // Red
-                                    else -> Color.Transparent
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(color),
-                                )
-                            },
-                            content = {
-                                val isExpanded = expandedMap[wordEntry.word] ?: false
+                Text(
+                    text = "פילטור מילים",
+                    fontSize = 32.sp,
+                    fontFamily = RUBIK_FONT,
+                    color = Color.White,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.padding(end = 12.dp),
+                )
+            }
 
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .background(Color(0xFF2C2733))
-                                        .clickable {
-                                            expandedMap[wordEntry.word] = !isExpanded
+            Spacer(modifier = Modifier.height(12.dp))
+
+            visibleWords.forEach { wordEntry ->
+                key(wordEntry.word) {
+                    val dismissState = remember(wordEntry.word) {
+                        SwipeToDismissBoxState(
+                            initialValue = SwipeToDismissBoxValue.Settled,
+                            density = density,
+                            confirmValueChange = { target ->
+                                showHints = false
+
+                                if (visibilityMap[wordEntry.word] == true) {
+                                    visibilityMap[wordEntry.word] = false
+
+                                    scope.launch {
+                                        delay(EXIT_ANIMATION_DURATION_MS.toLong())
+                                        visibilityMap.remove(wordEntry.word)
+
+                                        when (target) {
+                                            SwipeToDismissBoxValue.StartToEnd -> {
+                                                databaseViewModel.updateWord(wordEntry.copy(status = Status.KNOWN))
+                                            }
+
+                                            SwipeToDismissBoxValue.EndToStart -> {
+                                                Log.d(
+                                                    "FILTERING",
+                                                    "ADD ${wordEntry.word} TO UNKNOWN"
+                                                )
+                                                unknownWords.add(wordEntry.copy(status = Status.UNKNOWN))
+                                            }
+
+                                            else -> {}
                                         }
-                                        .padding(vertical = 8.dp, horizontal = 12.dp),
-                                ) {
-                                    Text(
-                                        text = wordEntry.word,
-                                        fontSize = 24.sp,
-                                        fontFamily = RUBIK_FONT,
-                                        color = Color.White,
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier.fillMaxWidth(),
-                                    )
-
-                                    AnimatedVisibility(visible = isExpanded) {
-                                        Text(
-                                            text = wordEntry.meaning,
-                                            fontSize = 18.sp,
-                                            fontFamily = RUBIK_FONT,
-                                            color = Color.LightGray,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 4.dp),
-                                        )
                                     }
                                 }
+                                true
                             },
+                            positionalThreshold = { it * 0.7f },
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
+
+                    val target = dismissState.targetValue
+
+                    AnimatedVisibility(
+                        visible = visibilityMap[wordEntry.word] ?: false,
+                        exit = shrinkVertically(animationSpec = tween(durationMillis = EXIT_ANIMATION_DURATION_MS)) + fadeOut(
+                            animationSpec = tween(EXIT_ANIMATION_DURATION_MS),
+                        ),
+                        modifier = Modifier.animateContentSize(),
+                    ) {
+                        Column {
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = {
+                                    val color = when (target) {
+                                        SwipeToDismissBoxValue.StartToEnd -> Color(0xFF81C784) // Green
+                                        SwipeToDismissBoxValue.EndToStart -> Color(0xFFE57373) // Red
+                                        else -> Color.Transparent
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(color),
+                                    )
+                                },
+                                content = {
+                                    val isExpanded = expandedMap[wordEntry.word] ?: false
+
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .background(Color(0xFF2C2733))
+                                            .clickable {
+                                                expandedMap[wordEntry.word] = !isExpanded
+                                                showHints = false
+                                            }
+                                            .padding(vertical = 8.dp, horizontal = 12.dp),
+                                    ) {
+                                        Text(
+                                            text = wordEntry.word,
+                                            fontSize = 24.sp,
+                                            fontFamily = RUBIK_FONT,
+                                            color = Color.White,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        )
+
+                                        AnimatedVisibility(visible = isExpanded) {
+                                            Text(
+                                                text = wordEntry.meaning,
+                                                fontSize = 18.sp,
+                                                fontFamily = RUBIK_FONT,
+                                                color = Color.LightGray,
+                                                textAlign = TextAlign.End,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 4.dp),
+                                            )
+                                        }
+                                    }
+                                },
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        if (showHints) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 8.dp, top = 108.dp),
+                verticalArrangement = Arrangement.spacedBy((-32).dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                ) {
+                    ClickHint()
+                }
+
+                Spacer(modifier = Modifier.height(56.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .offset(y = (-12).dp)
+                ) {
+                    SwipeLeftHint()
+                }
+                Box(modifier = Modifier.size(120.dp)) {
+                    SwipeRightHint()
                 }
             }
         }

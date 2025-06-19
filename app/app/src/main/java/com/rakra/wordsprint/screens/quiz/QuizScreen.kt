@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -104,33 +105,48 @@ fun QuizFlow(
         modifier = Modifier
             .fillMaxWidth()
             .background(BACKGROUND_COLOR)
-            .padding(WindowInsets.statusBars.asPaddingValues()),
-    ) {
-        Row {
+            .padding(WindowInsets.statusBars.asPaddingValues())
+            .padding(horizontal = 12.dp),
+
+        ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             IconButton(
-                onClick = {
-                    navController.popBackStack(route = "unit_screen/$unit", inclusive = false)
-                },
+                onClick = { navController.popBackStack() },
+                modifier = Modifier.size(48.dp),
             ) {
                 Icon(
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(48.dp),
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Back",
+                    tint = Color.Black,
                 )
             }
 
-            // Progress bar
+            Spacer(modifier = Modifier.width(0.dp))
+
+            // Place progress and counter inside a new Row with space distribution
             LinearProgressIndicator(
                 progress = {
                     (questionIndex + if (showResult) 1 else 0) / questions.size.toFloat()
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 13.dp, end = 12.dp)
+                    .weight(0.8f)
                     .height(20.dp)
                     .clip(RoundedCornerShape(10.dp)),
                 color = PROGRESS_BAR_COLOR,
                 trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                text = "${questionIndex + if (showResult) 1 else 0}/${questions.size}",
+                fontFamily = RUBIK_FONT,
+                fontSize = 32.sp,
+                color = BUTTON_CONTENT_COLOR
             )
         }
 

@@ -209,11 +209,11 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // Update Progression
-                            progressionViewModel.getEntry(unit, practice, {
+                            progressionViewModel.getEntry(unit, practice) {
                                 progressionViewModel.update(
                                     it!!.copy(completion = ProgressStatus.COMPLETED),
                                 )
-                            })
+                            }
                         }
                     }
 
@@ -221,6 +221,7 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     wordGroup = if (isFirst) newWords else combinedWords,
                     unit = unit,
+                    practice = practice,
                     onCompletion = onCompletion,
                 )
             }

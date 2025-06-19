@@ -77,6 +77,7 @@ fun QuizFlow(
     navController: NavHostController,
     wordGroup: List<WordEntry>,
     unit: Int,
+    practice: Int,
     onCompletion: suspend () -> Unit = {},
 ) {
     val questions = remember(wordGroup) { generateQuestions(wordGroup) }
@@ -122,7 +123,7 @@ fun QuizFlow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = { navController.popBackStack() },
+                onClick = { navController.popBackStack(route = "memorization/$unit/$practice", inclusive = false) },
                 modifier = Modifier.size(48.dp),
             ) {
                 Icon(

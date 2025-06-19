@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProgressionDao {
@@ -25,8 +26,8 @@ interface ProgressionDao {
     suspend fun getByUnitAndPractice(unit: Int, practiceNum: Int): ProgressionEntry?
 
     @Query("SELECT * FROM progression WHERE unit = :unit ORDER BY practiceNum ASC")
-    suspend fun getAllPracticesOfUnit(unit: Int): List<ProgressionEntry>
+    fun getAllPracticesOfUnit(unit: Int): Flow<List<ProgressionEntry>>
 
     @Query("SELECT * FROM progression")
-    suspend fun getAll(): List<ProgressionEntry>
+    fun getAll(): Flow<List<ProgressionEntry>>
 }

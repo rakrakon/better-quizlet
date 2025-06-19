@@ -1,6 +1,7 @@
 package com.rakra.wordsprint
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -69,9 +70,8 @@ class MainActivity : ComponentActivity() {
                 val practiceStates by progressionViewModel.loadPracticesForUnit(unit)
                     .collectAsState()
 
-                val practiceList = remember(practiceStates) {
-                    practiceStates.map { entry -> entry.completion }
-                }
+                Log.d("NAVIGATION", "PRACTICE STATES: $practiceStates")
+                val practiceList = practiceStates.map { entry -> entry.completion }
 
                 PracticeSelectScreen(
                     navController = navController,
@@ -214,7 +214,6 @@ class MainActivity : ComponentActivity() {
                                     it!!.copy(completion = ProgressStatus.COMPLETED),
                                 )
                             }
-                            progressionViewModel.refreshPracticesForUnit(unit)
                         }
                     }
 

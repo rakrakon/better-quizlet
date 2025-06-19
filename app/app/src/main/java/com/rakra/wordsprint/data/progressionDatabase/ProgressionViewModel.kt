@@ -3,59 +3,59 @@ package com.rakra.wordsprint.data.progressionDatabase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ProgressionViewModel(
     private val dao: ProgressionDao,
 ) : ViewModel() {
 
-    private val _allEntries = MutableStateFlow<List<ProgressionEntry>>(emptyList())
-    val allEntries: StateFlow<List<ProgressionEntry>> = _allEntries.asStateFlow()
-    private val practiceFlows = mutableMapOf<Int, MutableStateFlow<List<ProgressionEntry>>>()
+    // Expose all entries as StateFlow, backed by DAO Flow
+    val allEntries: StateFlow<List<ProgressionEntry>> = dao.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
-    fun loadAll() {
-        viewModelScope.launch {
-            _allEntries.value = dao.getAll()
-        }
-    }
+    // Cache of StateFlows per unit, backed by DAO Flow
+    private val practiceFlows = mutableMapOf<Int, StateFlow<List<ProgressionEntry>>>()
 
+    // Return a StateFlow that updates automatically as DAO Flow emits new data
     fun loadPracticesForUnit(unit: Int): StateFlow<List<ProgressionEntry>> {
-        practiceFlows[unit]?.let { return it.asStateFlow() }
-
-        val stateFlow = MutableStateFlow<List<ProgressionEntry>>(emptyList())
-        practiceFlows[unit] = stateFlow
-
-        viewModelScope.launch {
-            val data = dao.getAllPracticesOfUnit(unit)
-            stateFlow.value = data
-        }
-
-        return stateFlow.asStateFlow()
-    }
-
-    fun refreshPracticesForUnit(unit: Int) {
-        viewModelScope.launch {
-            val data = dao.getAllPracticesOfUnit(unit)
-            practiceFlows[unit]?.value = data
+        return practiceFlows.getOrPut(unit) {
+            dao.getAllPracticesOfUnit(unit)
+                .stateIn(
+                    scope = viewModelScope,
+                    started = SharingStarted.WhileSubscribed(5000),
+                    initialValue = emptyList()
+                )
         }
     }
 
+    // No need for manual refresh method now,
+    // because loadPracticesForUnit returns a reactive StateFlow.
+
+    // For single entries, still suspend fetch (no reactive support here)
     fun getEntry(unit: Int, practiceNum: Int, onResult: (ProgressionEntry?) -> Unit) {
         viewModelScope.launch {
-            onResult(dao.getByUnitAndPractice(unit, practiceNum))
+            val entry = dao.getByUnitAndPractice(unit, practiceNum)
+            onResult(entry)
         }
     }
 
-    fun getNumberOfPracticesInUnit(unit: Int) {
-        viewModelScope.launch {
-            dao.getAllPracticesOfUnit(unit).size
-        }
+    // Returns the number of practices in a unit as a suspend function
+    suspend fun getNumberOfPracticesInUnit(unit: Int): Int {
+        return dao.getAllPracticesOfUnit(unit).first().size
     }
 
+    // Calculate progression map as suspend function
     suspend fun getProgressionMap(): Map<Int, Float> {
-        val entries = dao.getAll()
+        val entries = dao.getAll().first()
 
         return entries
             .groupBy { it.unit }
@@ -66,7 +66,6 @@ class ProgressionViewModel(
             }
     }
 
-
     fun insertWords(entries: List<ProgressionEntry>) {
         viewModelScope.launch {
             dao.insertAll(entries)
@@ -76,21 +75,18 @@ class ProgressionViewModel(
     fun insert(entry: ProgressionEntry) {
         viewModelScope.launch {
             dao.insert(entry)
-            loadAll()
         }
     }
 
     fun update(entry: ProgressionEntry) {
         viewModelScope.launch {
             dao.update(entry)
-            loadAll()
         }
     }
 
     fun delete(entry: ProgressionEntry) {
         viewModelScope.launch {
             dao.delete(entry)
-            loadAll()
         }
     }
 }

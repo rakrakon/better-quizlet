@@ -104,7 +104,7 @@ fun QuizFlow(
     val isQuizComplete = questionIndex >= questions.size
 
     if (isQuizComplete) {
-        QuizCompletionDialog(mistakes, questions.size, onFinishClick)
+        QuizCompletionDialog(questions.size - mistakes, questions.size, onFinishClick)
     }
 
     val currentQuestion =

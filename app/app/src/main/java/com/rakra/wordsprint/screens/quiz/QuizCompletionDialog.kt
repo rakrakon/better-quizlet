@@ -18,7 +18,7 @@ import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 
 @Composable
 fun QuizCompletionDialog(
-    mistakes: Int,
+    correctAnswers: Int,
     totalQuestions: Int,
     onContinue: () -> Unit,
 ) {
@@ -35,7 +35,7 @@ fun QuizCompletionDialog(
         text = {
             Text(
                 text = ".סיימת את השאלון\n" +
-                    ".טעית ב - $mistakes מתוך $totalQuestions שאלות",
+                    ".צדקת ב - $correctAnswers מתוך $totalQuestions שאלות",
                 textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth(),
                 fontFamily = RUBIK_FONT,

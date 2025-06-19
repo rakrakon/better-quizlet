@@ -24,12 +24,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxState
@@ -37,6 +39,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -62,6 +65,7 @@ import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
+import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -123,6 +127,10 @@ fun WordFilteringScreen(
 
     val scope = rememberCoroutineScope()
 
+    val unknownWordsSize by remember {
+        derivedStateOf { unknownWords.size }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -136,6 +144,8 @@ fun WordFilteringScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                Spacer(modifier = Modifier.size(8.dp))
+
                 IconButton(
                     onClick = { navController.popBackStack() },
                     modifier = Modifier.size(48.dp),
@@ -159,6 +169,18 @@ fun WordFilteringScreen(
                     modifier = Modifier.padding(end = 12.dp),
                 )
             }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            LinearProgressIndicator(
+                progress = { (unknownWordsSize / FIRST_QUIZ_SIZE.toFloat()).coerceAtMost(1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(20.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                color = PROGRESS_BAR_COLOR,
+                trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 

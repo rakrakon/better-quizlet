@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                 MainPage(navController)
             }
             composable("unit_selection") {
-                UnitSelectScreen(navController)
+                UnitSelectScreen(navController, progressionViewModel)
             }
             composable(
                 route = "unit_screen/{unitNumber}",

@@ -40,6 +40,19 @@ class ProgressionViewModel(
         }
     }
 
+    suspend fun getProgressionMap(): Map<Int, Float> {
+        val entries = dao.getAll()
+
+        return entries
+            .groupBy { it.unit }
+            .mapValues { (_, unitEntries) ->
+                val total = unitEntries.size.takeIf { it > 0 } ?: return@mapValues 0f
+                val completed = unitEntries.count { it.completion == ProgressStatus.COMPLETED }
+                completed.toFloat() / total
+            }
+    }
+
+
     fun insertWords(entries: List<ProgressionEntry>) {
         viewModelScope.launch {
             dao.insertAll(entries)

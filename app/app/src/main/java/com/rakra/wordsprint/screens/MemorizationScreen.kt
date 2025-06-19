@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.animations.ClickHint
+import com.rakra.wordsprint.animations.SwipeLeftHint
+import com.rakra.wordsprint.animations.SwipeRightHint
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
@@ -66,13 +68,6 @@ fun MemorizationScreen(
     var showHints by remember { mutableStateOf(true) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        ClickHint(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .size(120.dp)
-                .padding(top = 16.dp)
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -187,6 +182,21 @@ fun MemorizationScreen(
             }
         }
 
-
+        if (showHints) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 8.dp, top = 108.dp),
+                verticalArrangement = Arrangement.spacedBy((-32).dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                ) {
+                    ClickHint()
+                }
+            }
+        }
     }
 }

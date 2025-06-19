@@ -51,6 +51,7 @@ import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.sfx.playLoadedSound
 import com.rakra.wordsprint.ui.sfx.rememberSoundPool
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
@@ -130,7 +131,7 @@ fun QuizFlow(
                     modifier = Modifier.size(48.dp),
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Back",
-                    tint = Color.Black,
+                    tint = BACK_BUTTON_COLOR,
                 )
             }
 

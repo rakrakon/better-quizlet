@@ -50,6 +50,7 @@ import androidx.navigation.NavHostController
 import com.rakra.wordsprint.ui.animations.ClickHint
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
@@ -86,7 +87,7 @@ fun MemorizationScreen(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Back",
-                        tint = Color.Black,
+                        tint = BACK_BUTTON_COLOR,
                         modifier = Modifier.size(48.dp),
                     )
                 }

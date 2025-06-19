@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.data.progressionDatabase.ProgressStatus
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.COMPLETE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
@@ -56,14 +57,16 @@ fun PracticeSelectScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(
-                onClick = { navController.popBackStack() },
+                onClick = {
+                    navController.popBackStack(route = "unit_selection", inclusive = false)
+                },
                 modifier = Modifier.size(48.dp),
             ) {
                 Icon(
                     modifier = Modifier.size(48.dp),
                     imageVector = Icons.Filled.Close,
                     contentDescription = "Back",
-                    tint = Color.Black,
+                    tint = BACK_BUTTON_COLOR,
                 )
             }
 
@@ -80,7 +83,8 @@ fun PracticeSelectScreen(
         }
 
         practiceStates.forEachIndexed { index, progress ->
-            val backgroundColor = if (progress == ProgressStatus.COMPLETED) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
+            val backgroundColor =
+                if (progress == ProgressStatus.COMPLETED) COMPLETE_COLOR else BUTTON_CONTAINER_COLOR
 
             Box(
                 modifier = Modifier

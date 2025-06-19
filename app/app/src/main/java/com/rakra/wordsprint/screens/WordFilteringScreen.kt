@@ -61,6 +61,7 @@ import com.rakra.wordsprint.ui.animations.SwipeRightHint
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
+import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -142,7 +143,7 @@ fun WordFilteringScreen(
                     Icon(
                         imageVector = Icons.Filled.Close,
                         contentDescription = "Back",
-                        tint = Color.Black,
+                        tint = BACK_BUTTON_COLOR,
                         modifier = Modifier.size(48.dp),
                     )
                 }

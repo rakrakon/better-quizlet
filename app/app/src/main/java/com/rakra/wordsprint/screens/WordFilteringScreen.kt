@@ -2,7 +2,6 @@ package com.rakra.wordsprint.screens
 
 import WordViewModel
 import android.util.Log
-import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -56,9 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.FIRST_QUIZ_SIZE
-import com.rakra.wordsprint.animations.ClickHint
-import com.rakra.wordsprint.animations.SwipeLeftHint
-import com.rakra.wordsprint.animations.SwipeRightHint
+import com.rakra.wordsprint.ui.animations.ClickHint
+import com.rakra.wordsprint.ui.animations.SwipeLeftHint
+import com.rakra.wordsprint.ui.animations.SwipeRightHint
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR

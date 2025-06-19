@@ -39,13 +39,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.AutoResizedText
+import com.rakra.wordsprint.R
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
+import com.rakra.wordsprint.ui.sfx.playLoadedSound
+import com.rakra.wordsprint.ui.sfx.rememberSoundPool
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
@@ -79,6 +83,10 @@ fun QuizFlow(
     var questionIndex by remember(wordGroup) { mutableIntStateOf(0) }
     var selectedAnswer by remember(wordGroup) { mutableStateOf<String?>(null) }
     var mistakes by remember(wordGroup) { mutableIntStateOf(0) }
+
+    val context = LocalContext.current
+    val (correctSoundPool, correctSoundId) = rememberSoundPool(context, R.raw.sfx_correct)
+    val (incorrectSoundPool, incorrectSoundId) = rememberSoundPool(context, R.raw.sfx_incorrect)
 
     Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $wordGroup")
     Log.d("DEBUG/QUIZ", "MISTAKES:$mistakes")
@@ -160,7 +168,10 @@ fun QuizFlow(
             onOptionSelected = {
                 selectedAnswer = it
                 if (it != currentQuestion.correctMeaning) {
+                    playLoadedSound(incorrectSoundPool, incorrectSoundId)
                     mistakes++
+                } else {
+                    playLoadedSound(correctSoundPool, correctSoundId)
                 }
             },
             onNext = {

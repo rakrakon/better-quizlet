@@ -1,4 +1,4 @@
-package com.rakra.wordsprint.animations
+package com.rakra.wordsprint.ui.animations
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable

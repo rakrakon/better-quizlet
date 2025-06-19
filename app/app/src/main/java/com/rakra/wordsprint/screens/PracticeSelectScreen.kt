@@ -48,7 +48,7 @@ fun PracticeSelectScreen(
             .fillMaxSize()
             .background(BACKGROUND_COLOR)
             .padding(WindowInsets.statusBars.asPaddingValues())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 12.dp)
             .verticalScroll(rememberScrollState()),
     ) {
         Row(

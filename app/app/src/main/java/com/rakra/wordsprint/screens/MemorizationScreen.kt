@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -48,9 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rakra.wordsprint.animations.ClickHint
-import com.rakra.wordsprint.animations.SwipeLeftHint
-import com.rakra.wordsprint.animations.SwipeRightHint
+import com.rakra.wordsprint.ui.animations.ClickHint
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR

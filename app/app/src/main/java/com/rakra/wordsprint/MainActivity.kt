@@ -214,6 +214,7 @@ class MainActivity : ComponentActivity() {
                                     it!!.copy(completion = ProgressStatus.COMPLETED),
                                 )
                             }
+                            progressionViewModel.refreshPracticesForUnit(unit)
                         }
                     }
 

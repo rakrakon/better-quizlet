@@ -13,6 +13,7 @@ class ProgressionViewModel(
 
     private val _allEntries = MutableStateFlow<List<ProgressionEntry>>(emptyList())
     val allEntries: StateFlow<List<ProgressionEntry>> = _allEntries.asStateFlow()
+    private val practiceFlows = mutableMapOf<Int, MutableStateFlow<List<ProgressionEntry>>>()
 
     fun loadAll() {
         viewModelScope.launch {
@@ -21,11 +22,24 @@ class ProgressionViewModel(
     }
 
     fun loadPracticesForUnit(unit: Int): StateFlow<List<ProgressionEntry>> {
+        practiceFlows[unit]?.let { return it.asStateFlow() }
+
         val stateFlow = MutableStateFlow<List<ProgressionEntry>>(emptyList())
+        practiceFlows[unit] = stateFlow
+
         viewModelScope.launch {
-            stateFlow.value = dao.getAllPracticesOfUnit(unit)
+            val data = dao.getAllPracticesOfUnit(unit)
+            stateFlow.value = data
         }
-        return stateFlow
+
+        return stateFlow.asStateFlow()
+    }
+
+    fun refreshPracticesForUnit(unit: Int) {
+        viewModelScope.launch {
+            val data = dao.getAllPracticesOfUnit(unit)
+            practiceFlows[unit]?.value = data
+        }
     }
 
     fun getEntry(unit: Int, practiceNum: Int, onResult: (ProgressionEntry?) -> Unit) {

@@ -37,15 +37,15 @@ class ProgressionViewModel(
         }
     }
 
-    // No need for manual refresh method now,
-    // because loadPracticesForUnit returns a reactive StateFlow.
-
-    // For single entries, still suspend fetch (no reactive support here)
     fun getEntry(unit: Int, practiceNum: Int, onResult: (ProgressionEntry?) -> Unit) {
         viewModelScope.launch {
             val entry = dao.getByUnitAndPractice(unit, practiceNum)
             onResult(entry)
         }
+    }
+
+    suspend fun getEntrySuspend(unit: Int, practiceNum: Int): ProgressionEntry? {
+        return dao.getByUnitAndPractice(unit, practiceNum)
     }
 
     // Returns the number of practices in a unit as a suspend function

@@ -4,14 +4,17 @@ import androidx.lifecycle.viewModelScope
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordDao
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class WordViewModel(private val wordDao: WordDao) : ViewModel() {
     private val wordsByStatusCache = mutableMapOf<Pair<Int, Status>, StateFlow<List<WordEntry>>>()
@@ -49,6 +52,16 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
         }
     }
 
+    /**
+     * Returns the next unknown word for the given unit, excluding any already shown or dismissed.
+     */
+    suspend fun getNextWord(unit: Int, exclude: List<WordEntry>): WordEntry? =
+        withContext(Dispatchers.IO) {
+            val excludedIds = exclude.map { it.id }.toSet()
+            val allUnknown = wordDao.getAllWords(unit, Status.UNKNOWN).first()
+            allUnknown.firstOrNull { it.id !in excludedIds }
+        }
+
     fun insertWords(words: List<WordEntry>) {
         viewModelScope.launch {
             wordDao.insertAll(words)
@@ -79,6 +92,10 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
             .map { it.shuffled() }
     }
 
+    suspend fun fetchWordsByIds(ids: List<Int>): List<WordEntry> =
+        ids.mapNotNull { id ->
+            wordDao.getWordByIdSuspend(id)
+        }
 
     private fun countUnknownWords(unit: Int): Flow<Int> =
         wordDao.countUnknownWordsInUnit(unit, "UNKNOWN")

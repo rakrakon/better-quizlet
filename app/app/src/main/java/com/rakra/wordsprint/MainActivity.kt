@@ -1,5 +1,6 @@
 package com.rakra.wordsprint
 
+import WordViewModel
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -13,7 +14,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -22,6 +23,7 @@ import androidx.navigation.navArgument
 import com.rakra.wordsprint.data.dataStore.loadWordList
 import com.rakra.wordsprint.data.dataStore.saveWordList
 import com.rakra.wordsprint.data.progressionDatabase.ProgressStatus
+import com.rakra.wordsprint.data.progressionDatabase.ProgressionViewModel
 import com.rakra.wordsprint.data.progressionDatabase.rememberProgressionViewModel
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
@@ -30,9 +32,7 @@ import com.rakra.wordsprint.screens.MainPage
 import com.rakra.wordsprint.screens.MemorizationScreen
 import com.rakra.wordsprint.screens.PracticeSelectScreen
 import com.rakra.wordsprint.screens.UnitSelectScreen
-import com.rakra.wordsprint.screens.WordFilteringScreen
 import com.rakra.wordsprint.screens.quiz.QuizFlow
-import com.rakra.wordsprint.screens.quiz.SharedQuizViewModel
 import com.rakra.wordsprint.screens.quiz.generateQuestions
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
 import kotlinx.coroutines.flow.first
@@ -52,7 +52,6 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val databaseViewModel = rememberWordViewModel()
         val progressionViewModel = rememberProgressionViewModel()
-        val sharedQuizViewModel: SharedQuizViewModel = viewModel()
 
         NavHost(
             navController = navController,
@@ -83,34 +82,6 @@ class MainActivity : ComponentActivity() {
                 )
             }
             composable(
-                route = "filtering/{unit}/{practice}",
-                arguments = listOf(
-                    navArgument("unit") { type = NavType.IntType },
-                    navArgument("practice") { type = NavType.IntType },
-                ),
-            ) { backStackEntry ->
-                val unit = backStackEntry.arguments?.getInt("unit") ?: 0
-                val practice = backStackEntry.arguments?.getInt("practice") ?: 0
-
-                val hasEnoughUnknown by databaseViewModel.hasAtLeastNUnknownWords(unit)
-                    .collectAsState()
-
-                var navigated by remember { mutableStateOf(false) }
-
-                if (!navigated && hasEnoughUnknown) {
-                    navigated = true
-                    navController.navigate("memorization/$unit/$practice")
-                    return@composable
-                }
-
-                WordFilteringScreen(
-                    navController = navController,
-                    unit = unit,
-                    databaseViewModel = databaseViewModel,
-                    practice = practice,
-                )
-            }
-            composable(
                 route = "memorization/{unit}/{practice}",
                 arguments = listOf(
                     navArgument("unit") { type = NavType.IntType },
@@ -120,16 +91,50 @@ class MainActivity : ComponentActivity() {
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
                 val practice = backStackEntry.arguments?.getInt("practice") ?: 0
 
-                val wordsState = databaseViewModel.getWordsByStatus(unit, Status.UNKNOWN)
-                val words = wordsState.collectAsState().value
+                var currentWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }
+                var initialized by remember { mutableStateOf(false) }
 
-                if (words.isNotEmpty()) {
-                    sharedQuizViewModel.wordList = words
+                val notSelectedWords by databaseViewModel.getWordsByStatus(
+                    unit,
+                    Status.NOT_SELECTED
+                )
+                    .collectAsState()
+
+
+                LaunchedEffect(notSelectedWords) {
+                    val progressEntry = progressionViewModel.getEntrySuspend(unit, practice)
+                    Log.d(
+                        "DEBUG",
+                        "WORD IDS FOR UNIT $unit PRACTICE $practice\n ${progressEntry!!.quizWordsIds}"
+                    )
+                    Log.d("DEBUG", "IS_EMPTY: ${progressEntry.quizWordsIds.isEmpty()}")
+                    currentWords = if (progressEntry.quizWordsIds.isEmpty()) {
+                        notSelectedWords.take(10)
+                    } else {
+                        databaseViewModel.fetchWordsByIds(progressEntry.quizWordsIds)
+                    }
+                    initialized = true
+                    Log.d(
+                        "NAVIGATION",
+                        "MEMORIZATION SCREEN INITIALIZED WITH WORDS:\b$currentWords"
+                    )
+                }
+
+
+                if (initialized && currentWords.isNotEmpty()) {
                     MemorizationScreen(
                         navController = navController,
                         unit = unit,
                         practice = practice,
-                        words = words,
+                        initialWords = currentWords,
+                        onContinue = navigateToQuizFirstTime(
+                            databaseViewModel,
+                            progressionViewModel,
+                            unit,
+                            practice,
+                            navController
+                        ),
+                        databaseViewModel = databaseViewModel
                     )
                 }
             }
@@ -149,14 +154,27 @@ class MainActivity : ComponentActivity() {
                 val isFirst = backStackEntry.arguments?.getBoolean("isFirst") ?: true
                 val mistakes = backStackEntry.arguments?.getInt("mistakes") ?: 0
 
-                val newWords = sharedQuizViewModel.wordList
+                val newWords by produceState(initialValue = emptyList<WordEntry>(), unit, practice) {
+                    val progressEntry = progressionViewModel.getEntrySuspend(unit, practice)
+                    value = databaseViewModel.fetchWordsByIds(progressEntry!!.quizWordsIds)
+                }
+
+                Log.d("DEBUG", "WORDS FOR QUIZ:\n $newWords")
 
                 if (isFirst && mistakes > FIRST_QUIZ_MAX_MISTAKES) {
                     MemorizationScreen(
                         navController = navController,
                         unit = unit,
-                        words = newWords,
+                        initialWords = newWords,
                         practice = practice,
+                        onContinue = navigateToQuizFirstTime(
+                            databaseViewModel,
+                            progressionViewModel,
+                            unit,
+                            practice,
+                            navController,
+                        ),
+                        databaseViewModel = databaseViewModel
                     )
                     return@composable
                 }
@@ -232,14 +250,42 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                QuizFlow(
-                    navController = navController,
-                    questions = questions,
-                    unit = unit,
-                    practice = practice,
-                    onCompletion = onCompletion,
-                )
+                if (questions.isNotEmpty()) {
+                    QuizFlow(
+                        navController = navController,
+                        questions = questions,
+                        unit = unit,
+                        practice = practice,
+                        onCompletion = onCompletion,
+                    )
+                }
             }
         }
+    }
+
+    @Composable
+    private fun navigateToQuizFirstTime(
+        databaseViewModel: WordViewModel,
+        progressionViewModel: ProgressionViewModel,
+        unit: Int,
+        practice: Int,
+        navController: NavHostController
+    ) = { words: List<WordEntry> ->
+        Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
+
+        // Update Word Database
+        val quizWordsIds = mutableListOf<Int>()
+        words.forEach { wordEntry: WordEntry ->
+            databaseViewModel.updateWord(wordEntry.copy(status = Status.UNKNOWN))
+            quizWordsIds.add(wordEntry.id)
+        }
+
+        // Update progression
+        progressionViewModel.getEntry(unit, practice) {
+            progressionViewModel.update(it!!.copy(quizWordsIds = quizWordsIds))
+        }
+
+        // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.
+        navController.navigate("quiz/$unit/$practice/true/0")
     }
 }

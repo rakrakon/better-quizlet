@@ -1,5 +1,6 @@
 package com.rakra.wordsprint.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -94,7 +95,9 @@ fun PracticeSelectScreen(
                     .then(
                         if (progress == ProgressStatus.NOT_STARTED) {
                             Modifier.clickable {
-                                navController.navigate("filtering/$unit/${index + 1}")
+                                val practiceNumber = index + 1
+                                Log.d("NAVIGATION", "NAVIGATION TO MEMORIZATION TRIGGERED!\n PRACTICE NUMBER $practiceNumber")
+                                navController.navigate("memorization/$unit/$practiceNumber")
                             }
                         } else {
                             Modifier

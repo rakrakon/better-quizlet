@@ -1,7 +1,12 @@
 package com.rakra.wordsprint.screens
 
+import WordViewModel
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +21,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -30,40 +36,77 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.rakra.wordsprint.FIRST_QUIZ_SIZE
+import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.ui.animations.ClickHint
 import com.rakra.wordsprint.data.wordsDatabase.WordEntry
+import com.rakra.wordsprint.ui.animations.SwipeRightHint
 import com.rakra.wordsprint.ui.theme.BACKGROUND_COLOR
 import com.rakra.wordsprint.ui.theme.BACK_BUTTON_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_CONTENT_COLOR
 import com.rakra.wordsprint.ui.theme.BUTTON_OUTLINE_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+
+private const val EXIT_ANIMATION_DURATION_MS = 300
 
 @Composable
 fun MemorizationScreen(
     navController: NavHostController,
     unit: Int,
     practice: Int,
-    words: List<WordEntry>,
+    initialWords: List<WordEntry>,
+    databaseViewModel: WordViewModel,
+    onContinue: (words: List<WordEntry>) -> Unit,
 ) {
     val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
     var showHints by remember { mutableStateOf(true) }
+    var visibleWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }
+    val activeSwipeWord = remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        visibleWords = initialWords
+    }
+
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+
+    val visibilityMap = remember(visibleWords) {
+        mutableStateMapOf<String, Boolean>().apply {
+            visibleWords.forEach {
+                this[it.word] = this[it.word] ?: true
+            }
+        }
+    }
+
+    val dismissedWords = remember { mutableStateSetOf<Int>() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -106,56 +149,137 @@ fun MemorizationScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            words.forEach { wordEntry ->
-                key(wordEntry.word) {
-                    Column {
-                        val isExpanded = expandedMap[wordEntry.word] ?: false
+            visibleWords.forEach { wordEntry ->
+                val dismissState = remember(wordEntry.word) {
+                    SwipeToDismissBoxState(
+                        initialValue = SwipeToDismissBoxValue.Settled,
+                        density = density,
+                        confirmValueChange = { target ->
+                            if (activeSwipeWord.value != null && activeSwipeWord.value != wordEntry.word) return@SwipeToDismissBoxState false
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(Color(0xFF2C2733))
-                                .clickable {
+                            when (target) {
+                                SwipeToDismissBoxValue.EndToStart -> false
+                                SwipeToDismissBoxValue.StartToEnd -> {
+                                    activeSwipeWord.value = wordEntry.word
                                     showHints = false
-                                    expandedMap[wordEntry.word] = !isExpanded
-                                }
-                                .padding(vertical = 8.dp, horizontal = 12.dp),
-                        ) {
-                            Text(
-                                text = wordEntry.word,
-                                fontSize = 24.sp,
-                                fontFamily = RUBIK_FONT,
-                                color = Color.White,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                                    if (visibilityMap[wordEntry.word] == true) {
+                                        visibilityMap[wordEntry.word] = false
+                                        scope.launch {
+                                            delay(EXIT_ANIMATION_DURATION_MS.toLong())
 
-                            AnimatedVisibility(visible = isExpanded) {
-                                Text(
-                                    text = wordEntry.meaning,
-                                    fontSize = 18.sp,
-                                    fontFamily = RUBIK_FONT,
-                                    color = Color.LightGray,
-                                    textAlign = TextAlign.End,
+                                            visibilityMap.remove(wordEntry.word)
+                                            dismissedWords.add(wordEntry.id)
+
+                                            val fillerWords = databaseViewModel.getWordsByStatus(
+                                                unit,
+                                                Status.NOT_SELECTED
+                                            )
+                                                .first { it.isNotEmpty() }
+
+                                            val visibleCount = visibilityMap.values.count { it }
+                                            val neededCount = FIRST_QUIZ_SIZE - visibleCount
+                                            val wordEntriesToAdd = fillerWords
+                                                .filterNot {
+                                                    dismissedWords.contains(it.id) || visibleWords.contains(
+                                                        it
+                                                    )
+                                                }
+                                                .shuffled()
+                                                .take(neededCount)
+
+                                            wordEntriesToAdd.forEach {
+                                                Log.d("DEBUG", "ADDED WORD ENTRY: $it")
+                                                visibilityMap[it.word] = true
+                                            }
+                                            visibleWords = visibleWords + wordEntriesToAdd
+                                            visibleWords =
+                                                visibleWords.filterNot { dismissedWords.contains(it.id) }
+
+                                            activeSwipeWord.value = null
+                                        }
+                                    } else {
+                                        activeSwipeWord.value = null
+                                    }
+                                    true
+                                }
+
+                                else -> true
+                            }
+                        },
+                        positionalThreshold = { it * 0.7f },
+                    )
+                }
+
+                val target = dismissState.targetValue
+
+                AnimatedVisibility(
+                    visible = visibilityMap[wordEntry.word] ?: false,
+                    exit = shrinkVertically(animationSpec = tween(durationMillis = EXIT_ANIMATION_DURATION_MS)) + fadeOut(
+                        animationSpec = tween(EXIT_ANIMATION_DURATION_MS),
+                    ),
+                    modifier = Modifier.animateContentSize(),
+                ) {
+                    Column {
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            enableDismissFromStartToEnd = activeSwipeWord.value == null || activeSwipeWord.value == wordEntry.word,
+                            enableDismissFromEndToStart = false,
+                            backgroundContent = {
+                                val color = when (target) {
+                                    SwipeToDismissBoxValue.StartToEnd -> Color(0xFF81C784)
+                                    else -> Color.Transparent
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(color),
+                                )
+                            },
+                            content = {
+                                val isExpanded = expandedMap[wordEntry.word] ?: false
+
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 4.dp),
-                                )
-                            }
-                        }
+                                        .clip(MaterialTheme.shapes.medium)
+                                        .background(Color(0xFF2C2733))
+                                        .clickable {
+                                            expandedMap[wordEntry.word] = !isExpanded
+                                            showHints = false
+                                        }
+                                        .padding(vertical = 8.dp, horizontal = 12.dp),
+                                ) {
+                                    Text(
+                                        text = wordEntry.word,
+                                        fontSize = 24.sp,
+                                        fontFamily = RUBIK_FONT,
+                                        color = Color.White,
+                                        textAlign = TextAlign.End,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+
+                                    AnimatedVisibility(visible = isExpanded) {
+                                        Text(
+                                            text = wordEntry.meaning,
+                                            fontSize = 18.sp,
+                                            fontFamily = RUBIK_FONT,
+                                            color = Color.LightGray,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 4.dp),
+                                        )
+                                    }
+                                }
+                            },
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }
 
             Button(
-                onClick = {
-                    Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
-
-                    // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.
-                    navController.navigate("quiz/$unit/$practice/true/0")
-                },
+                onClick = { onContinue(visibleWords) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6E99DB),
                     contentColor = BUTTON_CONTENT_COLOR,
@@ -193,6 +317,16 @@ fun MemorizationScreen(
                         .size(100.dp)
                 ) {
                     ClickHint()
+                }
+
+                Spacer(modifier = Modifier.height(56.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(120.dp)
+                        .offset(y = (-12).dp)
+                ) {
+                    SwipeRightHint()
                 }
             }
         }

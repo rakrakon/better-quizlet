@@ -17,4 +17,5 @@ data class ProgressionEntry(
     var practiceNum: Int,
     var unit: Int,
     var completion: ProgressStatus = ProgressStatus.NOT_STARTED,
+    var quizWordsIds: List<Int> = emptyList()
 )

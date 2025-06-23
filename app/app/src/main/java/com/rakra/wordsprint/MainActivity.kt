@@ -159,7 +159,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // Collect your randomWordsFlow from databaseViewModel as State
-                val knownWords by databaseViewModel.randomWordsFlow.collectAsState(initial = emptyList())
+                val knownWords by databaseViewModel.knownWordsFlow.collectAsState(initial = emptyList())
 
                 // Load recentWords from DataStore
                 var recentWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }

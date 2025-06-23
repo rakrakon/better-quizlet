@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class WordViewModel(private val wordDao: WordDao) : ViewModel() {
     private val wordsByStatusCache = mutableMapOf<Pair<Int, Status>, StateFlow<List<WordEntry>>>()
 
-    val randomWordsFlow: Flow<List<WordEntry>> = wordDao.getWordsUnitless(Status.UNKNOWN)
+    val knownWordsFlow: Flow<List<WordEntry>> = wordDao.getWordsUnitless(Status.KNOWN)
 
     init {
         viewModelScope.launch {

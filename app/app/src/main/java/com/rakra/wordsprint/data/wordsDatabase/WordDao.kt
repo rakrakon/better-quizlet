@@ -22,6 +22,9 @@ interface WordDao {
     @Query("SELECT * FROM words WHERE status = :status ORDER BY RANDOM() LIMIT 20")
     fun getWordsUnitless(status: Status): Flow<List<WordEntry>>
 
+    @Query("SELECT * FROM words WHERE unit = :unit ORDER BY RANDOM() LIMIT 75")
+    fun getAllWordsInUnit(unit: Int): Flow<List<WordEntry>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(words: List<WordEntry>)
 

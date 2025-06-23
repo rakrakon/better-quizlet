@@ -1,5 +1,6 @@
 package com.rakra.wordsprint.screens.quiz
 
+import WordViewModel
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,38 +60,23 @@ import com.rakra.wordsprint.ui.theme.PROGRESS_BAR_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 import kotlinx.coroutines.launch
 
-fun generateQuestions(allWords: List<WordEntry>): List<Question> {
-    return allWords.shuffled().map { current ->
-        val incorrectMeanings = allWords
-            .filter { it.word != current.word }
-            .shuffled()
-            .take(3)
-            .map { it.meaning }
-
-        val options = (incorrectMeanings + current.meaning).shuffled()
-
-        Question(word = current.word, options = options, correctMeaning = current.meaning)
-    }
-}
-
 @Composable
 fun QuizFlow(
     navController: NavHostController,
-    wordGroup: List<WordEntry>,
+    questions: List<Question>,
     unit: Int,
     practice: Int,
     onCompletion: suspend () -> Unit = {},
 ) {
-    val questions = remember(wordGroup) { generateQuestions(wordGroup) }
-    var questionIndex by remember(wordGroup) { mutableIntStateOf(0) }
-    var selectedAnswer by remember(wordGroup) { mutableStateOf<String?>(null) }
-    var mistakes by remember(wordGroup) { mutableIntStateOf(0) }
+    var questionIndex by remember(questions) { mutableIntStateOf(0) }
+    var selectedAnswer by remember(questions) { mutableStateOf<String?>(null) }
+    var mistakes by remember(questions) { mutableIntStateOf(0) }
 
     val context = LocalContext.current
     val (correctSoundPool, correctSoundId) = rememberSoundPool(context, R.raw.sfx_correct)
     val (incorrectSoundPool, incorrectSoundId) = rememberSoundPool(context, R.raw.sfx_incorrect)
 
-    Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $wordGroup")
+    Log.d("DEBUG/QUIZ", "Quiz Initialized with word group:\n $questions")
     Log.d("DEBUG/QUIZ", "MISTAKES:$mistakes")
 
     val coroutineScope = rememberCoroutineScope()

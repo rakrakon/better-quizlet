@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -32,7 +33,9 @@ import com.rakra.wordsprint.screens.UnitSelectScreen
 import com.rakra.wordsprint.screens.WordFilteringScreen
 import com.rakra.wordsprint.screens.quiz.QuizFlow
 import com.rakra.wordsprint.screens.quiz.SharedQuizViewModel
+import com.rakra.wordsprint.screens.quiz.generateQuestions
 import com.rakra.wordsprint.ui.theme.WordSprintTheme
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -163,6 +166,7 @@ class MainActivity : ComponentActivity() {
 
                 // Load recentWords from DataStore
                 var recentWords by remember { mutableStateOf<List<WordEntry>>(emptyList()) }
+
                 LaunchedEffect(Unit) {
                     recentWords = loadWordList(context)
                 }
@@ -182,6 +186,10 @@ class MainActivity : ComponentActivity() {
                     }
 
                     initialList
+                }
+
+                val randomEntries by produceState(initialValue = emptyList(), unit) {
+                    value = databaseViewModel.getRandomizedWordsFlow(unit).first()
                 }
 
                 val onCompletion: suspend () -> Unit =
@@ -217,9 +225,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                val questions = remember(isFirst, newWords, combinedWords, randomEntries) {
+                    generateQuestions(
+                        quizWords = if (isFirst) newWords else combinedWords,
+                        randomEntries = randomEntries
+                    )
+                }
+
                 QuizFlow(
                     navController = navController,
-                    wordGroup = if (isFirst) newWords else combinedWords,
+                    questions = questions,
                     unit = unit,
                     practice = practice,
                     onCompletion = onCompletion,

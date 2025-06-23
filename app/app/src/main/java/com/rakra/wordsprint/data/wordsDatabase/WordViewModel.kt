@@ -74,6 +74,12 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
         }
     }
 
+    fun getRandomizedWordsFlow(unit: Int): Flow<List<WordEntry>> {
+        return wordDao.getAllWordsInUnit(unit)
+            .map { it.shuffled() }
+    }
+
+
     private fun countUnknownWords(unit: Int): Flow<Int> =
         wordDao.countUnknownWordsInUnit(unit, "UNKNOWN")
 

@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
@@ -83,7 +84,7 @@ fun MemorizationScreen(
     practice: Int,
     initialWords: List<WordEntry>,
     databaseViewModel: WordViewModel,
-    onContinue: (words: List<WordEntry>) -> Unit,
+    onContinue: (words: List<WordEntry>, knownWords: List<WordEntry>) -> Unit,
 ) {
     val expandedMap = remember { mutableStateMapOf<String, Boolean>() }
     var showHints by remember { mutableStateOf(true) }
@@ -106,6 +107,7 @@ fun MemorizationScreen(
     }
 
     val dismissedWords = remember { mutableStateSetOf<Int>() }
+    val dismissedWordEntries = remember { mutableStateListOf<WordEntry>() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -169,6 +171,7 @@ fun MemorizationScreen(
                                                 delay(EXIT_ANIMATION_DURATION_MS.toLong())
 
                                                 dismissedWords.add(wordEntry.id)
+                                                dismissedWordEntries.add(wordEntry)
                                                 val index = visibleWords.indexOf(wordEntry)
 
                                                 val filler = databaseViewModel
@@ -278,7 +281,9 @@ fun MemorizationScreen(
             }
 
             Button(
-                onClick = { onContinue(visibleWords) },
+                onClick = {
+                    onContinue(visibleWords, dismissedWordEntries)
+                          },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6E99DB),
                     contentColor = BUTTON_CONTENT_COLOR,

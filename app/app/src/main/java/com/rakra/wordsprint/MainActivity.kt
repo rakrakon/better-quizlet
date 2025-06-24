@@ -246,7 +246,7 @@ class MainActivity : ComponentActivity() {
                 val questions = remember(isFirst, newWords, combinedWords, randomEntries) {
                     generateQuestions(
                         quizWords = if (isFirst) newWords else combinedWords,
-                        randomEntries = randomEntries
+                        randomEntries = randomEntries.filterNot { wordEntry -> newWords.contains(wordEntry) }
                     )
                 }
 
@@ -270,7 +270,7 @@ class MainActivity : ComponentActivity() {
         unit: Int,
         practice: Int,
         navController: NavHostController
-    ) = { words: List<WordEntry> ->
+    ) = { words: List<WordEntry>, knownWords: List<WordEntry> ->
         Log.d("NAVIGATION", "NAVIGATION TO QUIZ TRIGGERED!")
 
         // Update Word Database
@@ -283,6 +283,10 @@ class MainActivity : ComponentActivity() {
         // Update progression
         progressionViewModel.getEntry(unit, practice) {
             progressionViewModel.update(it!!.copy(quizWordsIds = quizWordsIds))
+        }
+
+        knownWords.forEach { wordEntry ->
+            databaseViewModel.updateWord(wordEntry.copy(status =Status.KNOWN))
         }
 
         // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.

@@ -1,5 +1,7 @@
 package com.rakra.wordsprint.data.progressionDatabase
 
+import WordViewModel
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow

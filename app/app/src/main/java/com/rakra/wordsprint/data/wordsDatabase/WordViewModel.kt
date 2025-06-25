@@ -100,7 +100,20 @@ class WordViewModel(private val wordDao: WordDao) : ViewModel() {
     private fun countUnknownWords(unit: Int): Flow<Int> =
         wordDao.countUnknownWordsInUnit(unit, "UNKNOWN")
 
-    fun hasAtLeastNUnknownWords(unit: Int, n: Int = 10): StateFlow<Boolean> {
+    suspend fun getProgressionMap(): Map<Int, Float> {
+        val entries = wordDao.getAllWords().first()
+
+        val groupedByUnit: Map<Int, List<WordEntry>> = entries.groupBy { it.unit }
+
+        return groupedByUnit.mapValues { (unit, wordsInUnit) ->
+            val total = wordsInUnit.size.toFloat()
+            Log.d("DEBUG", "TOTAL WORDS IN UNIT $unit IS $total")
+            val notSelectedOrUnknownCount = wordsInUnit.count { it.status == Status.NOT_SELECTED || it.status == Status.UNKNOWN }
+            (total - notSelectedOrUnknownCount) / total
+        }
+    }
+
+    private fun hasAtLeastNUnknownWords(unit: Int, n: Int = 10): StateFlow<Boolean> {
         return countUnknownWords(unit)
             .map { count -> count >= n }
             .onStart { emit(false) }

@@ -1,5 +1,6 @@
 package com.rakra.wordsprint.screens
 
+import WordViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,11 +36,11 @@ import com.rakra.wordsprint.ui.theme.BUTTON_CONTAINER_COLOR
 import com.rakra.wordsprint.ui.theme.RUBIK_FONT
 
 @Composable
-fun UnitSelectScreen(navController: NavHostController, progressionViewModel: ProgressionViewModel) {
+fun UnitSelectScreen(navController: NavHostController, wordViewModel: WordViewModel) {
     val unitList = (1..NUMBER_OF_UNITS).map { "יחידה $it" }
 
     val progressByUnit by produceState<Map<Int, Float>>(initialValue = emptyMap()) {
-        value = progressionViewModel.getProgressionMap()
+        value = wordViewModel.getProgressionMap()
     }
 
     Column(
@@ -86,14 +88,14 @@ fun UnitSelectScreen(navController: NavHostController, progressionViewModel: Pro
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    androidx.compose.material3.LinearProgressIndicator(
-                        progress = progress,
+                    LinearProgressIndicator(
+                        progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(10.dp)
                             .clip(MaterialTheme.shapes.small),
                         color = Color(0xFF4CAF50),
-                        trackColor = Color.White.copy(alpha = 0.2f)
+                        trackColor = Color.White.copy(alpha = 0.2f),
                     )
                 }
             }

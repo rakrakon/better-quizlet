@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                 MainPage(navController)
             }
             composable("unit_selection") {
-                UnitSelectScreen(navController, progressionViewModel)
+                UnitSelectScreen(navController, databaseViewModel)
             }
             composable(
                 route = "unit_screen/{unitNumber}",
@@ -147,6 +147,7 @@ class MainActivity : ComponentActivity() {
                     navArgument("mistakes") { type = NavType.IntType },
                 ),
             ) { backStackEntry ->
+                // Should be a view model but I fucked up while writing this and now I'm lazy
                 val context = LocalContext.current
 
                 val unit = backStackEntry.arguments?.getInt("unit") ?: 0
@@ -154,7 +155,11 @@ class MainActivity : ComponentActivity() {
                 val isFirst = backStackEntry.arguments?.getBoolean("isFirst") ?: true
                 val mistakes = backStackEntry.arguments?.getInt("mistakes") ?: 0
 
-                val newWords by produceState(initialValue = emptyList<WordEntry>(), unit, practice) {
+                val newWords by produceState(
+                    initialValue = emptyList<WordEntry>(),
+                    unit,
+                    practice
+                ) {
                     val progressEntry = progressionViewModel.getEntrySuspend(unit, practice)
                     value = databaseViewModel.fetchWordsByIds(progressEntry!!.quizWordsIds)
                 }
@@ -246,7 +251,11 @@ class MainActivity : ComponentActivity() {
                 val questions = remember(isFirst, newWords, combinedWords, randomEntries) {
                     generateQuestions(
                         quizWords = if (isFirst) newWords else combinedWords,
-                        randomEntries = randomEntries.filterNot { wordEntry -> newWords.contains(wordEntry) }
+                        randomEntries = randomEntries.filterNot { wordEntry ->
+                            newWords.contains(
+                                wordEntry
+                            )
+                        }
                     )
                 }
 
@@ -286,7 +295,7 @@ class MainActivity : ComponentActivity() {
         }
 
         knownWords.forEach { wordEntry ->
-            databaseViewModel.updateWord(wordEntry.copy(status =Status.KNOWN))
+            databaseViewModel.updateWord(wordEntry.copy(status = Status.KNOWN))
         }
 
         // Will Always be the first quiz after the memorization screen, Also there will be 0 mistakes.

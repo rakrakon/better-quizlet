@@ -27,9 +27,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,6 +64,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import androidx.navigation.NavHostController
 import com.rakra.wordsprint.data.wordsDatabase.Status
 import com.rakra.wordsprint.ui.animations.ClickHint
@@ -108,6 +113,7 @@ fun MemorizationScreen(
 
     val dismissedWords = remember { mutableStateSetOf<Int>() }
     val dismissedWordEntries = remember { mutableStateListOf<WordEntry>() }
+    val dismissedWordsIndices = remember { mutableStateListOf<Int>() }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -173,6 +179,7 @@ fun MemorizationScreen(
                                                 dismissedWords.add(wordEntry.id)
                                                 dismissedWordEntries.add(wordEntry)
                                                 val index = visibleWords.indexOf(wordEntry)
+                                                dismissedWordsIndices.add(index)
 
                                                 val filler = databaseViewModel
                                                     .getWordsByStatus(unit, Status.NOT_SELECTED)
@@ -333,6 +340,35 @@ fun MemorizationScreen(
                     SwipeRightHint()
                 }
             }
+        }
+
+        IconButton(
+            onClick = {
+                if (dismissedWords.isNotEmpty()) {
+                    val wordEntry = dismissedWordEntries.last()
+                    val index = dismissedWordsIndices.last()
+
+                    visibleWords = visibleWords.toMutableList().apply {
+                        set(index, wordEntry)
+                    }
+
+                    visibilityMap[wordEntry.word] = true
+                    dismissedWords.remove(wordEntry.id)
+                    dismissedWordEntries.remove(wordEntry)
+                    dismissedWordsIndices.remove(index)
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+                .size(48.dp)
+        ) {
+            Icon(
+                modifier = Modifier.size(48.dp),
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Undo last action",
+                tint = BACK_BUTTON_COLOR,
+            )
         }
     }
 }
